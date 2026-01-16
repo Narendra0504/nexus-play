@@ -1,0 +1,436 @@
+// =====================================================
+// LOGIN PAGE STYLES - CLEAN & PROFESSIONAL
+// =====================================================
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 50%, #285e61 100%);
+  position: relative;
+}
+
+// =====================================================
+// LOGIN CARD
+// =====================================================
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 40px;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// =====================================================
+// LOGO SECTION
+// =====================================================
+.logo-section {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logo-icon {
+  width: 72px;
+  height: 72px;
+  background: #2c5282;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 4px 12px rgba(44, 82, 130, 0.4);
+
+  mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    color: white;
+  }
+}
+
+.app-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2c5282;
+  margin: 0 0 8px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.app-tagline {
+  font-size: 14px;
+  color: #718096;
+  margin: 0;
+}
+
+// =====================================================
+// TAB NAVIGATION
+// =====================================================
+.tab-navigation {
+  display: flex;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #718096;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #2c5282;
+  }
+
+  &.active {
+    color: #2c5282;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #2c5282;
+      border-radius: 3px 3px 0 0;
+    }
+  }
+}
+
+// =====================================================
+// ERROR ALERT
+// =====================================================
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fed7d7;
+  border: 1px solid #fc8181;
+  border-radius: 8px;
+  margin-bottom: 20px;
+
+  mat-icon {
+    color: #c53030;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  span {
+    color: #c53030;
+    font-size: 14px;
+  }
+}
+
+// =====================================================
+// FORM FIELDS
+// =====================================================
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 48px;
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus-within {
+    border-color: #2c5282;
+    box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
+  }
+
+  &.error {
+    border-color: #e53e3e;
+
+    &:focus-within {
+      box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+    }
+  }
+
+  .field-icon {
+    color: #a0aec0;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: #2d3748;
+    background: transparent;
+    height: 100%;
+
+    &::placeholder {
+      color: #a0aec0;
+    }
+  }
+
+  .toggle-password {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+
+    mat-icon {
+      color: #a0aec0;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      transition: color 0.2s;
+    }
+
+    &:hover mat-icon {
+      color: #718096;
+    }
+  }
+}
+
+.error-text {
+  font-size: 12px;
+  color: #e53e3e;
+}
+
+// =====================================================
+// FORM OPTIONS (Remember Me & Forgot Password)
+// =====================================================
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #2c5282;
+    cursor: pointer;
+  }
+
+  .checkbox-label {
+    font-size: 14px;
+    color: #4a5568;
+  }
+}
+
+.forgot-link {
+  font-size: 14px;
+  color: #2c5282;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #1a365d;
+    text-decoration: underline;
+  }
+}
+
+// =====================================================
+// SUBMIT BUTTON
+// =====================================================
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  background: #2c5282;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: 8px;
+
+  &:hover:not(:disabled) {
+    background: #2b4c7e;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+  }
+
+  mat-spinner {
+    ::ng-deep circle {
+      stroke: white;
+    }
+  }
+}
+
+// =====================================================
+// SSO SECTION
+// =====================================================
+.sso-section {
+  margin-top: 24px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+  }
+
+  span {
+    font-size: 12px;
+    color: #a0aec0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.sso-btn {
+  width: 100%;
+  height: 48px;
+  background: white;
+  color: #4a5568;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:hover {
+    border-color: #cbd5e0;
+    background: #f7fafc;
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// =====================================================
+// BOTTOM HELP
+// =====================================================
+.bottom-help {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: #718096;
+
+    a {
+      color: #2c5282;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #1a365d;
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// =====================================================
+// FOOTER
+// =====================================================
+.login-footer {
+  margin-top: 24px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+// =====================================================
+// RESPONSIVE
+// =====================================================
+@media (max-width: 480px) {
+  .login-card {
+    padding: 32px 24px;
+    margin: 16px;
+  }
+
+  .app-title {
+    font-size: 24px;
+  }
+
+  .tab-btn {
+    font-size: 13px;
+    padding: 10px 8px;
+  }
+}

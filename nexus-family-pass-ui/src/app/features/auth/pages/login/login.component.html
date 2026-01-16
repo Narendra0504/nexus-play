@@ -1,0 +1,118 @@
+<!-- Login Page Container -->
+<div class="login-page">
+  
+  <!-- Login Card -->
+  <div class="login-card">
+    
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <div class="logo-icon">
+        <mat-icon>family_restroom</mat-icon>
+      </div>
+      <h1 class="app-title">Nexus Family Pass</h1>
+      <p class="app-tagline">Kids activities made easy for busy families</p>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button 
+        *ngFor="let label of tabLabels; let i = index"
+        class="tab-btn"
+        [class.active]="selectedTabIndex() === i"
+        (click)="onTabChange(i)">
+        {{ label }}
+      </button>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      
+      <!-- Error Alert -->
+      <div *ngIf="error" class="error-alert">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ error }}</span>
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-field">
+        <label class="field-label">Email address</label>
+        <div class="input-wrapper" [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+          <mat-icon class="field-icon">mail_outline</mat-icon>
+          <input 
+            type="email" 
+            formControlName="email"
+            placeholder="you@company.com"
+            autocomplete="email">
+        </div>
+        <span class="error-text" *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid">
+          {{ getEmailError() }}
+        </span>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-field">
+        <label class="field-label">Password</label>
+        <div class="input-wrapper" [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+          <mat-icon class="field-icon">lock_outline</mat-icon>
+          <input 
+            [type]="hidePassword() ? 'password' : 'text'" 
+            formControlName="password"
+            placeholder="Enter your password"
+            autocomplete="current-password">
+          <button 
+            type="button" 
+            class="toggle-password"
+            (click)="togglePasswordVisibility()">
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </div>
+        <span class="error-text" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
+          {{ getPasswordError() }}
+        </span>
+      </div>
+
+      <!-- Remember Me & Forgot Password -->
+      <div class="form-options">
+        <label class="checkbox-wrapper">
+          <input type="checkbox" formControlName="rememberMe">
+          <span class="checkmark"></span>
+          <span class="checkbox-label">Remember me</span>
+        </label>
+        <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <!-- Submit Button -->
+      <button 
+        type="submit" 
+        class="submit-btn"
+        [disabled]="isLoading">
+        <span *ngIf="!isLoading">Sign In</span>
+        <mat-spinner *ngIf="isLoading" diameter="24"></mat-spinner>
+      </button>
+    </form>
+
+    <!-- SSO Section (Corporate Tab Only) -->
+    <div *ngIf="selectedTabIndex() === 1" class="sso-section">
+      <div class="divider">
+        <span>or</span>
+      </div>
+      <button type="button" class="sso-btn" (click)="onSsoLogin()">
+        <mat-icon>business</mat-icon>
+        Sign in with SSO
+      </button>
+    </div>
+
+    <!-- Bottom Help Text -->
+    <div class="bottom-help">
+      <ng-container [ngSwitch]="selectedTabIndex()">
+        <p *ngSwitchCase="0">Don't have an account? <a href="mailto:hr@yourcompany.com">Contact your HR</a></p>
+        <p *ngSwitchCase="1">Need access? <a href="mailto:sales@nexusfamilypass.com">Contact sales</a></p>
+        <p *ngSwitchCase="2">Want to list your venue? <a href="mailto:partners@nexusfamilypass.com">Request Access</a></p>
+      </ng-container>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <p class="login-footer">© 2024 Nexus Family Pass. All rights reserved.</p>
+</div>
