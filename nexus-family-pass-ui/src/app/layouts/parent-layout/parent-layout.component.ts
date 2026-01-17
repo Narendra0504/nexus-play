@@ -4,9 +4,10 @@
 // header, and content area
 // =====================================================
 
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +32,7 @@ interface NavItem {
     CommonModule,
     RouterModule,
     RouterOutlet,
+    FormsModule,
     MatSidenavModule,
     MatToolbarModule,
     MatButtonModule,
@@ -108,18 +110,51 @@ interface NavItem {
       <div class="main-wrapper" [class.sidebar-collapsed]="sidebarCollapsed()">
         <!-- Header -->
         <header class="header">
+          <!-- Left Section: Menu + Search -->
           <div class="header-left">
             <button mat-icon-button class="menu-toggle hide-desktop" (click)="toggleMobileSidebar()">
               <mat-icon>menu</mat-icon>
             </button>
-            <div class="greeting hide-mobile">
-              <h1 class="greeting-title">{{ getGreeting() }}, {{ userName() }}! 👋</h1>
-              <p class="greeting-subtitle">Let's find something fun for your kids today</p>
+            
+            <!-- Search Bar -->
+            <div class="search-container">
+              <div class="search-box" [class.focused]="searchFocused">
+                <mat-icon class="search-icon">search</mat-icon>
+                <input 
+                  type="text" 
+                  class="search-input"
+                  [placeholder]="searchPlaceholder"
+                  [(ngModel)]="searchQuery"
+                  (focus)="onSearchFocus()"
+                  (blur)="onSearchBlur()"
+                  (keyup.enter)="onSearch()">
+                <button *ngIf="searchQuery" class="clear-btn" (click)="clearSearch()">
+                  <mat-icon>close</mat-icon>
+                </button>
+                <button class="voice-btn" matTooltip="Voice search">
+                  <mat-icon>mic</mat-icon>
+                </button>
+              </div>
+              
+              <!-- Search Suggestions Dropdown -->
+              <div class="search-suggestions" *ngIf="searchFocused && !searchQuery">
+                <div class="suggestion-header">Popular Searches</div>
+                <div class="suggestion-item" *ngFor="let suggestion of popularSearches" (mousedown)="selectSuggestion(suggestion)">
+                  <mat-icon>trending_up</mat-icon>
+                  <span>{{ suggestion }}</span>
+                </div>
+                <div class="suggestion-header">Recent</div>
+                <div class="suggestion-item" *ngFor="let recent of recentSearches" (mousedown)="selectSuggestion(recent)">
+                  <mat-icon>history</mat-icon>
+                  <span>{{ recent }}</span>
+                </div>
+              </div>
             </div>
           </div>
 
+          <!-- Right Section: Credits, Notifications, User -->
           <div class="header-right">
-            <!-- Credits Display (Header) -->
+            <!-- Credits Display -->
             <div class="header-credits">
               <div class="credits-badge">
                 <mat-icon>stars</mat-icon>
@@ -141,7 +176,7 @@ interface NavItem {
             <!-- User Menu -->
             <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-btn">
               <div class="user-avatar">{{ userInitials() }}</div>
-              <div class="user-info hide-mobile">
+              <div class="user-details hide-mobile">
                 <span class="user-name">{{ userName() }}</span>
                 <span class="user-role">Parent Account</span>
               </div>
@@ -168,6 +203,10 @@ interface NavItem {
               <button mat-menu-item routerLink="/parent/bookings">
                 <mat-icon>calendar_today</mat-icon>
                 <span>My Bookings</span>
+              </button>
+              <button mat-menu-item routerLink="/parent/favorites">
+                <mat-icon>favorite</mat-icon>
+                <span>Favorites</span>
               </button>
               <mat-divider></mat-divider>
               <button mat-menu-item (click)="logout()" class="logout-item">
@@ -586,7 +625,7 @@ interface NavItem {
        ===================================================== */
     .header {
       background: white;
-      padding: 16px 32px;
+      padding: 12px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -594,12 +633,13 @@ interface NavItem {
       position: sticky;
       top: 0;
       z-index: 50;
-      gap: 16px;
+      gap: 20px;
     }
 
     @media (max-width: 768px) {
       .header {
         padding: 12px 16px;
+        gap: 12px;
       }
     }
 
@@ -608,44 +648,195 @@ interface NavItem {
       align-items: center;
       gap: 16px;
       flex: 1;
-      min-width: 0;
+      max-width: 600px;
     }
 
     .menu-toggle mat-icon {
       color: var(--color-text-primary);
     }
 
-    .greeting {
-      min-width: 0;
+    /* =====================================================
+       SEARCH BAR
+       ===================================================== */
+    .search-container {
+      flex: 1;
+      position: relative;
     }
 
-    .greeting-title {
-      font-family: var(--font-family-display);
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--color-text-primary);
-      margin: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .greeting-subtitle {
-      font-size: 14px;
-      color: var(--color-text-secondary);
-      margin: 0;
-    }
-
-    .header-right {
+    .search-box {
       display: flex;
       align-items: center;
-      gap: 16px;
+      background: var(--color-gray-100);
+      border: 2px solid transparent;
+      border-radius: 16px;
+      padding: 0 16px;
+      height: 48px;
+      transition: all 0.2s ease;
+    }
+
+    .search-box:hover {
+      background: var(--color-gray-50);
+      border-color: var(--color-gray-200);
+    }
+
+    .search-box.focused {
+      background: white;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .search-icon {
+      color: var(--color-text-muted);
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+      margin-right: 12px;
       flex-shrink: 0;
     }
 
+    .search-box.focused .search-icon {
+      color: var(--color-primary);
+    }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      outline: none;
+      min-width: 0;
+    }
+
+    .search-input::placeholder {
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+
+    .clear-btn,
+    .voice-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-left: 4px;
+    }
+
+    .clear-btn mat-icon,
+    .voice-btn mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: var(--color-text-muted);
+    }
+
+    .clear-btn:hover,
+    .voice-btn:hover {
+      background: var(--color-gray-200);
+    }
+
+    .clear-btn:hover mat-icon,
+    .voice-btn:hover mat-icon {
+      color: var(--color-text-secondary);
+    }
+
+    .voice-btn {
+      background: linear-gradient(135deg, var(--color-primary-50) 0%, #fdf2f8 100%);
+    }
+
+    .voice-btn mat-icon {
+      color: var(--color-primary);
+    }
+
+    .voice-btn:hover {
+      background: linear-gradient(135deg, var(--color-primary-100) 0%, #fce7f3 100%);
+    }
+
+    /* Search Suggestions */
+    .search-suggestions {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--color-border);
+      padding: 12px 0;
+      z-index: 100;
+      animation: slideDown 0.2s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .suggestion-header {
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .suggestion-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .suggestion-item:hover {
+      background: var(--color-primary-50);
+    }
+
+    .suggestion-item mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: var(--color-text-muted);
+    }
+
+    .suggestion-item span {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    @media (max-width: 600px) {
+      .search-container {
+        display: none;
+      }
+    }
+
     /* =====================================================
-       HEADER CREDITS BADGE
+       HEADER RIGHT SECTION
        ===================================================== */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    /* Credits Badge */
     .header-credits {
       display: flex;
       align-items: center;
@@ -657,14 +848,14 @@ interface NavItem {
       gap: 10px;
       background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
       padding: 8px 16px;
-      border-radius: 16px;
+      border-radius: 14px;
       box-shadow: 0 4px 12px rgba(251, 191, 36, 0.35);
     }
 
     .credits-badge mat-icon {
-      font-size: 22px;
-      width: 22px;
-      height: 22px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
       color: #1f2937;
     }
 
@@ -675,44 +866,36 @@ interface NavItem {
     }
 
     .credits-badge .credits-number {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 800;
       color: #1f2937;
     }
 
     .credits-badge .credits-max {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 600;
-      color: rgba(31, 41, 55, 0.7);
+      color: rgba(31, 41, 55, 0.6);
     }
 
     .credits-badge .credits-text {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
-      color: rgba(31, 41, 55, 0.8);
+      color: rgba(31, 41, 55, 0.7);
       text-transform: uppercase;
       letter-spacing: 0.03em;
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 500px) {
       .credits-badge {
-        padding: 6px 12px;
+        padding: 8px 12px;
       }
       
       .credits-badge .credits-info {
         display: none;
       }
-      
-      .credits-badge::after {
-        content: attr(data-credits);
-        font-weight: 800;
-        color: #1f2937;
-      }
     }
 
-    /* =====================================================
-       NOTIFICATION BUTTON
-       ===================================================== */
+    /* Notification Button */
     .notification-btn {
       position: relative;
       width: 44px;
@@ -754,16 +937,13 @@ interface NavItem {
       box-shadow: 0 2px 6px rgba(249, 115, 22, 0.4);
     }
 
-    /* =====================================================
-       USER MENU BUTTON
-       ===================================================== */
+    /* User Menu Button */
     .user-menu-btn {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 6px;
-      padding-right: 12px;
-      border-radius: 16px !important;
+      gap: 10px;
+      padding: 6px 10px 6px 6px;
+      border-radius: 14px !important;
       background: var(--color-gray-50);
       border: 1px solid var(--color-border);
       min-height: 48px;
@@ -789,23 +969,28 @@ interface NavItem {
       flex-shrink: 0;
     }
 
-    .user-info {
+    .user-details {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       line-height: 1.2;
+      min-width: 0;
     }
 
     .user-name {
       font-weight: 700;
       color: var(--color-text-primary);
-      font-size: 14px;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
     }
 
     .user-role {
-      font-size: 11px;
-      color: var(--color-text-secondary);
-      font-weight: 500;
+      font-size: 10px;
+      color: var(--color-text-muted);
+      font-weight: 600;
     }
 
     .dropdown-icon {
@@ -813,17 +998,10 @@ interface NavItem {
       font-size: 20px;
       width: 20px;
       height: 20px;
+      flex-shrink: 0;
     }
 
-    @media (max-width: 768px) {
-      .user-menu-btn {
-        padding: 6px;
-      }
-    }
-
-    /* =====================================================
-       USER DROPDOWN MENU
-       ===================================================== */
+    /* User Dropdown Menu */
     :host ::ng-deep .user-dropdown {
       margin-top: 8px;
       border-radius: 20px !important;
@@ -884,7 +1062,7 @@ interface NavItem {
        ===================================================== */
     .main-content {
       flex: 1;
-      padding: 24px 32px;
+      padding: 24px;
       overflow-y: auto;
     }
 
@@ -1004,7 +1182,7 @@ interface NavItem {
        RESPONSIVE HELPERS
        ===================================================== */
     .hide-mobile {
-      display: block;
+      display: flex;
     }
 
     .hide-desktop {
@@ -1017,7 +1195,7 @@ interface NavItem {
       }
       
       .hide-desktop {
-        display: block !important;
+        display: flex !important;
       }
     }
   `]
@@ -1029,10 +1207,19 @@ export class ParentLayoutComponent implements OnInit {
   totalCredits = signal(10);
   notificationCount = signal(3);
 
+  // Search
+  searchQuery = '';
+  searchFocused = false;
+  searchPlaceholder = "What activity is your child excited about today? 🎨";
+  
+  popularSearches = ['Swimming classes', 'Art workshops', 'Soccer training', 'Music lessons'];
+  recentSearches = ['Karate for kids', 'Dance classes nearby'];
+
   navItems: NavItem[] = [
     { icon: 'dashboard', label: 'Dashboard', route: '/parent/dashboard' },
     { icon: 'search', label: 'Browse Activities', route: '/parent/activities' },
     { icon: 'face', label: 'My Children', route: '/parent/children' },
+    { icon: 'favorite', label: 'Favorites', route: '/parent/favorites' },
     { icon: 'calendar_today', label: 'Bookings', route: '/parent/bookings' },
     { icon: 'schedule', label: 'Waitlist', route: '/parent/waitlist', badge: 2 },
     { icon: 'notifications', label: 'Notifications', route: '/parent/notifications', badge: 3 },
@@ -1056,9 +1243,7 @@ export class ParentLayoutComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit(): void {
-    // Initialize
-  }
+  ngOnInit(): void {}
 
   getGreeting(): string {
     const hour = new Date().getHours();
@@ -1073,6 +1258,34 @@ export class ParentLayoutComponent implements OnInit {
 
   toggleMobileSidebar(): void {
     this.mobileSidebarOpen.update(v => !v);
+  }
+
+  // Search methods
+  onSearchFocus(): void {
+    this.searchFocused = true;
+  }
+
+  onSearchBlur(): void {
+    setTimeout(() => {
+      this.searchFocused = false;
+    }, 200);
+  }
+
+  onSearch(): void {
+    if (this.searchQuery.trim()) {
+      this.router.navigate(['/parent/activities'], { 
+        queryParams: { q: this.searchQuery } 
+      });
+    }
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+  }
+
+  selectSuggestion(suggestion: string): void {
+    this.searchQuery = suggestion;
+    this.onSearch();
   }
 
   logout(): void {
