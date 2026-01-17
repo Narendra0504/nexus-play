@@ -1,578 +1,1080 @@
 // =====================================================
 // NEXUS FAMILY PASS - PARENT LAYOUT COMPONENT
-// Main layout shell for the Parent Portal with sidebar
-// navigation, top header, and content area
+// Main layout wrapper for parent portal with sidebar,
+// header, and content area
 // =====================================================
 
-// Import Angular core decorators
-import { Component, signal, computed } from '@angular/core';
-
-// Import CommonModule for directives
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule, RouterOutlet, Router } from '@angular/router';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
 
-// Import Router modules
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-
-// Import Angular Material modules
-import { MatSidenavModule } from '@angular/material/sidenav';     // Sidenav container
-import { MatToolbarModule } from '@angular/material/toolbar';     // Top toolbar
-import { MatListModule } from '@angular/material/list';           // Navigation list
-import { MatIconModule } from '@angular/material/icon';           // Icons
-import { MatButtonModule } from '@angular/material/button';       // Buttons
-import { MatMenuModule } from '@angular/material/menu';           // Dropdown menu
-import { MatBadgeModule } from '@angular/material/badge';         // Notification badge
-import { MatTooltipModule } from '@angular/material/tooltip';     // Tooltips
-import { MatDividerModule } from '@angular/material/divider';     // Dividers
-
-// Import AuthService for user info and logout
 import { AuthService } from '../../core/services/auth.service';
 
-/**
- * ParentLayoutComponent - Parent Portal Layout Shell
- * 
- * This component provides the layout structure for all parent portal pages:
- * - Responsive sidebar navigation (collapsible on mobile)
- * - Top toolbar with user info and notifications
- * - Main content area with router outlet
- * - Footer section
- * 
- * Uses Angular Material sidenav for responsive behavior
- */
+interface NavItem {
+  icon: string;
+  label: string;
+  route: string;
+  badge?: number;
+}
+
 @Component({
-  // CSS selector
   selector: 'app-parent-layout',
-  
-  // Standalone component
   standalone: true,
-  
-  // Import required modules
   imports: [
-    CommonModule,              // Common directives
-    RouterOutlet,              // Router outlet for child routes
-    RouterLink,                // Router links
-    RouterLinkActive,          // Active link styling
-    MatSidenavModule,          // Material sidenav
-    MatToolbarModule,          // Material toolbar
-    MatListModule,             // Material list
-    MatIconModule,             // Material icons
-    MatButtonModule,           // Material buttons
-    MatMenuModule,             // Material menu
-    MatBadgeModule,            // Material badge
-    MatTooltipModule,          // Material tooltip
-    MatDividerModule           // Material divider
+    CommonModule,
+    RouterModule,
+    RouterOutlet,
+    MatSidenavModule,
+    MatToolbarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatTooltipModule,
+    MatDividerModule
   ],
-  
-  // Component template
   template: `
-    <!-- Main layout container using Material sidenav -->
-    <mat-sidenav-container class="layout-container">
-      
-      <!-- 
-        Sidebar Navigation
-        Mode changes based on screen size (over on mobile, side on desktop)
-      -->
-      <mat-sidenav 
-        #sidenav
-        [mode]="isMobile() ? 'over' : 'side'"
-        [opened]="!isMobile()"
-        class="sidebar"
-        [class.collapsed]="sidebarCollapsed()">
-        
-        <!-- Sidebar header with logo -->
+    <div class="layout-container">
+      <!-- Sidebar -->
+      <aside class="sidebar" [class.collapsed]="sidebarCollapsed()">
+        <!-- Logo Section -->
         <div class="sidebar-header">
-          <!-- Logo and app name -->
           <div class="logo" *ngIf="!sidebarCollapsed()">
-            <mat-icon class="logo-icon">family_restroom</mat-icon>
-            <span class="logo-text">Nexus Family Pass</span>
+            <div class="logo-icon">
+              <mat-icon>family_restroom</mat-icon>
+            </div>
+            <div class="logo-text">
+              <span class="logo-title">Nexus</span>
+              <span class="logo-subtitle">Family Pass</span>
+            </div>
           </div>
-          
-          <!-- Collapsed state - icon only -->
-          <div class="logo-collapsed" *ngIf="sidebarCollapsed()">
-            <mat-icon class="logo-icon">family_restroom</mat-icon>
+          <div class="logo-mini" *ngIf="sidebarCollapsed()">
+            <mat-icon>family_restroom</mat-icon>
           </div>
-          
-          <!-- Collapse toggle button (desktop only) -->
-          <button 
-            mat-icon-button 
-            class="collapse-btn"
-            (click)="toggleSidebar()"
-            *ngIf="!isMobile()"
-            [matTooltip]="sidebarCollapsed() ? 'Expand menu' : 'Collapse menu'">
-            <mat-icon>{{ sidebarCollapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
-          </button>
         </div>
 
-        <mat-divider></mat-divider>
-
-        <!-- Navigation list -->
-        <mat-nav-list class="nav-list">
-          <!-- Navigation items using *ngFor -->
-          <a 
-            mat-list-item
-            *ngFor="let item of navItems"
-            [routerLink]="item.route"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: item.exact }"
-            class="nav-item"
-            (click)="onNavItemClick()">
-            
-            <!-- Navigation icon -->
-            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-            
-            <!-- Navigation label (hidden when collapsed) -->
-            <span matListItemTitle *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
-            
-            <!-- Badge for notifications -->
-            <span 
-              *ngIf="item.badge && item.badge() > 0 && !sidebarCollapsed()" 
-              class="nav-badge">
-              {{ item.badge() }}
-            </span>
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+          <a *ngFor="let item of navItems"
+             [routerLink]="item.route"
+             routerLinkActive="active"
+             class="nav-item"
+             [matTooltip]="sidebarCollapsed() ? item.label : ''"
+             matTooltipPosition="right">
+            <div class="nav-icon">
+              <mat-icon>{{ item.icon }}</mat-icon>
+              <span class="nav-badge" *ngIf="item.badge">{{ item.badge }}</span>
+            </div>
+            <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
           </a>
-        </mat-nav-list>
+        </nav>
 
-        <!-- Sidebar footer with credits info -->
-        <div class="sidebar-footer" *ngIf="!sidebarCollapsed()">
-          <mat-divider></mat-divider>
-          <div class="credits-info">
-            <mat-icon>toll</mat-icon>
-            <div class="credits-text">
-              <span class="credits-label">Credits Remaining</span>
-              <span class="credits-value">{{ creditsRemaining() }}</span>
-            </div>
-          </div>
-        </div>
-      </mat-sidenav>
-
-      <!-- Main content area -->
-      <mat-sidenav-content class="main-content">
-        
-        <!-- Top toolbar/header -->
-        <mat-toolbar class="top-toolbar" color="primary">
-          
-          <!-- Mobile menu toggle -->
-          <button 
-            mat-icon-button 
-            (click)="sidenav.toggle()"
-            class="menu-toggle"
-            *ngIf="isMobile()">
-            <mat-icon>menu</mat-icon>
-          </button>
-
-          <!-- Page title or breadcrumb area -->
-          <span class="toolbar-title">{{ pageTitle() }}</span>
-
-          <!-- Spacer to push items to right -->
-          <span class="toolbar-spacer"></span>
-
-          <!-- Notification bell -->
-          <button 
-            mat-icon-button
-            [matBadge]="unreadNotifications()"
-            [matBadgeHidden]="unreadNotifications() === 0"
-            matBadgeColor="warn"
-            matBadgeSize="small"
-            routerLink="/parent/notifications"
-            matTooltip="Notifications">
-            <mat-icon>notifications</mat-icon>
-          </button>
-
-          <!-- User menu -->
-          <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-menu-trigger">
-            <!-- User avatar -->
-            <div class="user-avatar">
-              {{ userInitials() }}
-            </div>
-          </button>
-
-          <!-- User dropdown menu -->
-          <mat-menu #userMenu="matMenu" xPosition="before">
-            <!-- User info header -->
-            <div class="user-menu-header">
-              <div class="user-avatar large">{{ userInitials() }}</div>
-              <div class="user-info">
-                <span class="user-name">{{ userName() }}</span>
-                <span class="user-email">{{ userEmail() }}</span>
+        <!-- Credits Card -->
+        <div class="sidebar-credits" *ngIf="!sidebarCollapsed()">
+          <div class="credits-card">
+            <div class="credits-header">
+              <div class="credits-icon">
+                <mat-icon>stars</mat-icon>
+              </div>
+              <div class="credits-text">
+                <span class="credits-label">Credits Remaining</span>
               </div>
             </div>
-            
-            <mat-divider></mat-divider>
-            
-            <!-- Menu items -->
-            <button mat-menu-item routerLink="/parent/settings">
-              <mat-icon>settings</mat-icon>
-              <span>Settings</span>
-            </button>
-            
-            <button mat-menu-item (click)="logout()">
-              <mat-icon>logout</mat-icon>
-              <span>Logout</span>
-            </button>
-          </mat-menu>
-        </mat-toolbar>
+            <div class="credits-value-row">
+              <span class="credits-current">{{ credits() }}</span>
+              <span class="credits-divider">/</span>
+              <span class="credits-total">{{ totalCredits() }}</span>
+            </div>
+            <div class="credits-progress">
+              <div class="progress-bar" [style.width.%]="creditsPercentage()"></div>
+            </div>
+            <span class="credits-hint">Use them before they expire!</span>
+          </div>
+        </div>
 
-        <!-- Page content - router outlet renders child components here -->
-        <main class="page-content" id="main-content">
+        <!-- Collapse Toggle -->
+        <button class="collapse-toggle" (click)="toggleSidebar()">
+          <mat-icon>{{ sidebarCollapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+        </button>
+      </aside>
+
+      <!-- Main Content Area -->
+      <div class="main-wrapper" [class.sidebar-collapsed]="sidebarCollapsed()">
+        <!-- Header -->
+        <header class="header">
+          <div class="header-left">
+            <button mat-icon-button class="menu-toggle hide-desktop" (click)="toggleMobileSidebar()">
+              <mat-icon>menu</mat-icon>
+            </button>
+            <div class="greeting hide-mobile">
+              <h1 class="greeting-title">{{ getGreeting() }}, {{ userName() }}! 👋</h1>
+              <p class="greeting-subtitle">Let's find something fun for your kids today</p>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <!-- Credits Display (Header) -->
+            <div class="header-credits">
+              <div class="credits-badge">
+                <mat-icon>stars</mat-icon>
+                <div class="credits-info">
+                  <span class="credits-number">{{ credits() }}<span class="credits-max">/{{ totalCredits() }}</span></span>
+                  <span class="credits-text">Credits</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notifications -->
+            <button mat-icon-button class="notification-btn" [routerLink]="['/parent/notifications']">
+              <mat-icon>notifications</mat-icon>
+              <span class="notification-count" *ngIf="notificationCount() > 0">
+                {{ notificationCount() > 9 ? '9+' : notificationCount() }}
+              </span>
+            </button>
+
+            <!-- User Menu -->
+            <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-btn">
+              <div class="user-avatar">{{ userInitials() }}</div>
+              <div class="user-info hide-mobile">
+                <span class="user-name">{{ userName() }}</span>
+                <span class="user-role">Parent Account</span>
+              </div>
+              <mat-icon class="dropdown-icon hide-mobile">keyboard_arrow_down</mat-icon>
+            </button>
+
+            <mat-menu #userMenu="matMenu" class="user-dropdown">
+              <div class="menu-header">
+                <div class="menu-avatar">{{ userInitials() }}</div>
+                <div class="menu-user-info">
+                  <span class="menu-user-name">{{ userName() }}</span>
+                  <span class="menu-user-email">{{ userEmail() }}</span>
+                </div>
+              </div>
+              <mat-divider></mat-divider>
+              <button mat-menu-item routerLink="/parent/settings">
+                <mat-icon>settings</mat-icon>
+                <span>Settings</span>
+              </button>
+              <button mat-menu-item routerLink="/parent/children">
+                <mat-icon>face</mat-icon>
+                <span>My Children</span>
+              </button>
+              <button mat-menu-item routerLink="/parent/bookings">
+                <mat-icon>calendar_today</mat-icon>
+                <span>My Bookings</span>
+              </button>
+              <mat-divider></mat-divider>
+              <button mat-menu-item (click)="logout()" class="logout-item">
+                <mat-icon>logout</mat-icon>
+                <span>Sign Out</span>
+              </button>
+            </mat-menu>
+          </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="main-content">
           <router-outlet></router-outlet>
         </main>
+      </div>
 
-        <!-- Footer -->
-        <footer class="page-footer">
-          <p>&copy; 2024 Nexus Family Pass. All rights reserved.</p>
-        </footer>
-      </mat-sidenav-content>
-    </mat-sidenav-container>
+      <!-- Mobile Sidebar Overlay -->
+      <div class="sidebar-overlay" 
+           [class.visible]="mobileSidebarOpen()" 
+           (click)="toggleMobileSidebar()">
+      </div>
+
+      <!-- Mobile Sidebar -->
+      <aside class="mobile-sidebar" [class.open]="mobileSidebarOpen()">
+        <div class="mobile-sidebar-header">
+          <div class="logo">
+            <div class="logo-icon">
+              <mat-icon>family_restroom</mat-icon>
+            </div>
+            <div class="logo-text">
+              <span class="logo-title">Nexus</span>
+              <span class="logo-subtitle">Family Pass</span>
+            </div>
+          </div>
+          <button mat-icon-button class="close-btn" (click)="toggleMobileSidebar()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <!-- Mobile Credits -->
+        <div class="mobile-credits">
+          <div class="credits-icon">
+            <mat-icon>stars</mat-icon>
+          </div>
+          <div class="credits-details">
+            <span class="credits-value">{{ credits() }} / {{ totalCredits() }}</span>
+            <span class="credits-label">Credits Remaining</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a *ngFor="let item of navItems"
+             [routerLink]="item.route"
+             routerLinkActive="active"
+             class="nav-item"
+             (click)="toggleMobileSidebar()">
+            <div class="nav-icon">
+              <mat-icon>{{ item.icon }}</mat-icon>
+              <span class="nav-badge" *ngIf="item.badge">{{ item.badge }}</span>
+            </div>
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        </nav>
+      </aside>
+    </div>
   `,
-  
-  // Component styles
   styles: [`
-    /* Layout container - full viewport */
+    /* =====================================================
+       LAYOUT CONTAINER
+       ===================================================== */
     .layout-container {
-      height: 100vh;                                  /* Full viewport height */
+      display: flex;
+      min-height: 100vh;
+      background: var(--color-background);
     }
 
-    /* Sidebar styles */
+    /* =====================================================
+       SIDEBAR (Desktop)
+       ===================================================== */
     .sidebar {
-      width: 260px;                                   /* Sidebar width */
-      background-color: #1a202c;                      /* Dark background */
-      transition: width 0.3s ease;                    /* Smooth width transition */
+      width: 280px;
+      background: linear-gradient(180deg, #4c1d95 0%, #5b21b6 50%, #6d28d9 100%);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 100;
+      transition: width 0.3s ease;
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
     }
 
     .sidebar.collapsed {
-      width: 64px;                                    /* Collapsed width */
+      width: 80px;
     }
 
-    /* Sidebar header */
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+    }
+
     .sidebar-header {
-      display: flex;                                  /* Flexbox layout */
-      align-items: center;                            /* Center vertically */
-      justify-content: space-between;                 /* Space between items */
-      padding: 1rem;                                  /* Padding */
-      min-height: 64px;                               /* Match toolbar height */
+      padding: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* Logo styling */
     .logo {
-      display: flex;                                  /* Flexbox for icon + text */
-      align-items: center;                            /* Center vertically */
-      gap: 0.5rem;                                    /* Space between icon and text */
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .logo-icon {
-      color: #319795;                                 /* Accent color */
-      font-size: 28px;                                /* Icon size */
-      width: 28px;
-      height: 28px;
-    }
-
-    .logo-text {
-      color: white;                                   /* White text */
-      font-size: 1.125rem;                            /* Font size */
-      font-weight: 600;                               /* Semi-bold */
-    }
-
-    .logo-collapsed {
-      display: flex;
-      justify-content: center;
-      width: 100%;
-    }
-
-    .collapse-btn {
-      color: #a0aec0;                                 /* Gray color */
-    }
-
-    /* Navigation list */
-    .nav-list {
-      padding: 0.5rem 0;                              /* Vertical padding */
-    }
-
-    .nav-item {
-      color: #a0aec0 !important;                      /* Gray text */
-      margin: 0.25rem 0.5rem;                         /* Item margin */
-      border-radius: 8px;                             /* Rounded corners */
-      transition: all 0.2s;                           /* Smooth transition */
-    }
-
-    .nav-item:hover {
-      background-color: rgba(255, 255, 255, 0.1) !important; /* Hover background */
-      color: white !important;                        /* White text on hover */
-    }
-
-    .nav-item.active {
-      background-color: #2c5282 !important;           /* Active background */
-      color: white !important;                        /* White text */
-    }
-
-    .nav-item mat-icon {
-      color: inherit;                                 /* Inherit text color */
-    }
-
-    .nav-badge {
-      background-color: #e53e3e;                      /* Red badge */
-      color: white;                                   /* White text */
-      font-size: 0.75rem;                             /* Small font */
-      padding: 0.125rem 0.5rem;                       /* Padding */
-      border-radius: 999px;                           /* Pill shape */
-      margin-left: auto;                              /* Push to right */
-    }
-
-    /* Sidebar footer */
-    .sidebar-footer {
-      margin-top: auto;                               /* Push to bottom */
-      padding: 1rem;                                  /* Padding */
-    }
-
-    .credits-info {
-      display: flex;                                  /* Flexbox layout */
-      align-items: center;                            /* Center vertically */
-      gap: 0.75rem;                                   /* Gap between items */
-      padding: 0.75rem;                               /* Padding */
-      background-color: rgba(49, 151, 149, 0.2);      /* Teal tint background */
-      border-radius: 8px;                             /* Rounded corners */
-      margin-top: 1rem;                               /* Top margin */
-    }
-
-    .credits-info mat-icon {
-      color: #319795;                                 /* Accent color */
-    }
-
-    .credits-text {
-      display: flex;                                  /* Flexbox layout */
-      flex-direction: column;                         /* Stack vertically */
-    }
-
-    .credits-label {
-      font-size: 0.75rem;                             /* Small font */
-      color: #a0aec0;                                 /* Gray color */
-    }
-
-    .credits-value {
-      font-size: 1.25rem;                             /* Larger font */
-      font-weight: 600;                               /* Semi-bold */
-      color: white;                                   /* White color */
-    }
-
-    /* Main content area */
-    .main-content {
-      display: flex;                                  /* Flexbox layout */
-      flex-direction: column;                         /* Stack vertically */
-      background-color: #f7fafc;                      /* Light background */
-    }
-
-    /* Top toolbar */
-    .top-toolbar {
-      position: sticky;                               /* Stick to top */
-      top: 0;                                         /* At top edge */
-      z-index: 100;                                   /* Above content */
-    }
-
-    .menu-toggle {
-      margin-right: 0.5rem;                           /* Right margin */
-    }
-
-    .toolbar-title {
-      font-size: 1.125rem;                            /* Title font size */
-      font-weight: 500;                               /* Medium weight */
-    }
-
-    .toolbar-spacer {
-      flex: 1;                                        /* Take remaining space */
-    }
-
-    /* User avatar */
-    .user-avatar {
-      width: 36px;                                    /* Avatar size */
-      height: 36px;
-      border-radius: 50%;                             /* Circle shape */
-      background-color: #319795;                      /* Accent background */
-      color: white;                                   /* White text */
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.875rem;                            /* Font size */
-      font-weight: 600;                               /* Semi-bold */
     }
 
-    .user-avatar.large {
-      width: 48px;                                    /* Larger avatar */
+    .logo-icon mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      color: white;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo-title {
+      font-family: var(--font-family-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: white;
+      line-height: 1.1;
+    }
+
+    .logo-subtitle {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 600;
+    }
+
+    .logo-mini {
+      width: 48px;
       height: 48px;
-      font-size: 1rem;                                /* Larger font */
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
     }
 
-    /* User menu header */
-    .user-menu-header {
-      display: flex;                                  /* Flexbox layout */
-      align-items: center;                            /* Center vertically */
-      gap: 0.75rem;                                   /* Gap between items */
-      padding: 1rem;                                  /* Padding */
+    .logo-mini mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      color: white;
+    }
+
+    /* =====================================================
+       NAVIGATION
+       ===================================================== */
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      overflow-y: auto;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      margin-bottom: 6px;
+      border-radius: 14px;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+    }
+
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.25);
+      color: white;
+    }
+
+    .nav-item.active .nav-icon mat-icon {
+      color: white;
+    }
+
+    .nav-icon {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+    }
+
+    .nav-icon mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .nav-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      min-width: 18px;
+      height: 18px;
+      background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+      border-radius: 50%;
+      color: white;
+      font-size: 10px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      box-shadow: 0 2px 6px rgba(249, 115, 22, 0.5);
+    }
+
+    .nav-label {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .sidebar.collapsed .nav-item {
+      justify-content: center;
+      padding: 14px;
+    }
+
+    /* =====================================================
+       SIDEBAR CREDITS CARD
+       ===================================================== */
+    .sidebar-credits {
+      padding: 16px;
+      margin-top: auto;
+    }
+
+    .credits-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    .credits-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .credits-card .credits-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+    }
+
+    .credits-card .credits-icon mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      color: #1f2937;
+    }
+
+    .credits-card .credits-text {
+      flex: 1;
+    }
+
+    .credits-card .credits-label {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 600;
+    }
+
+    .credits-value-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .credits-current {
+      font-family: var(--font-family-display);
+      font-size: 42px;
+      font-weight: 800;
+      color: white;
+      line-height: 1;
+    }
+
+    .credits-divider {
+      font-size: 24px;
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 600;
+    }
+
+    .credits-total {
+      font-size: 24px;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 700;
+    }
+
+    .credits-progress {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #fbbf24, #f97316);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .credits-hint {
+      display: block;
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 500;
+    }
+
+    /* =====================================================
+       COLLAPSE TOGGLE
+       ===================================================== */
+    .collapse-toggle {
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+
+    .collapse-toggle mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: var(--color-primary);
+    }
+
+    .collapse-toggle:hover {
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .collapse-toggle {
+        display: none;
+      }
+    }
+
+    /* =====================================================
+       MAIN WRAPPER
+       ===================================================== */
+    .main-wrapper {
+      flex: 1;
+      margin-left: 280px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: margin-left 0.3s ease;
+      background: var(--color-background);
+    }
+
+    .main-wrapper.sidebar-collapsed {
+      margin-left: 80px;
+    }
+
+    @media (max-width: 768px) {
+      .main-wrapper {
+        margin-left: 0 !important;
+      }
+    }
+
+    /* =====================================================
+       HEADER
+       ===================================================== */
+    .header {
+      background: white;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 12px 16px;
+      }
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .menu-toggle mat-icon {
+      color: var(--color-text-primary);
+    }
+
+    .greeting {
+      min-width: 0;
+    }
+
+    .greeting-title {
+      font-family: var(--font-family-display);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .greeting-subtitle {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      margin: 0;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    /* =====================================================
+       HEADER CREDITS BADGE
+       ===================================================== */
+    .header-credits {
+      display: flex;
+      align-items: center;
+    }
+
+    .credits-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+      padding: 8px 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(251, 191, 36, 0.35);
+    }
+
+    .credits-badge mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+      color: #1f2937;
+    }
+
+    .credits-badge .credits-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .credits-badge .credits-number {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1f2937;
+    }
+
+    .credits-badge .credits-max {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(31, 41, 55, 0.7);
+    }
+
+    .credits-badge .credits-text {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(31, 41, 55, 0.8);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    @media (max-width: 480px) {
+      .credits-badge {
+        padding: 6px 12px;
+      }
+      
+      .credits-badge .credits-info {
+        display: none;
+      }
+      
+      .credits-badge::after {
+        content: attr(data-credits);
+        font-weight: 800;
+        color: #1f2937;
+      }
+    }
+
+    /* =====================================================
+       NOTIFICATION BUTTON
+       ===================================================== */
+    .notification-btn {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px !important;
+      background: var(--color-gray-100);
+      flex-shrink: 0;
+    }
+
+    .notification-btn mat-icon {
+      color: var(--color-text-secondary);
+      font-size: 24px;
+    }
+
+    .notification-btn:hover {
+      background: var(--color-primary-50);
+    }
+
+    .notification-btn:hover mat-icon {
+      color: var(--color-primary);
+    }
+
+    .notification-count {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      min-width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+      border-radius: 10px;
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      border: 2px solid white;
+      box-shadow: 0 2px 6px rgba(249, 115, 22, 0.4);
+    }
+
+    /* =====================================================
+       USER MENU BUTTON
+       ===================================================== */
+    .user-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px;
+      padding-right: 12px;
+      border-radius: 16px !important;
+      background: var(--color-gray-50);
+      border: 1px solid var(--color-border);
+      min-height: 48px;
+      flex-shrink: 0;
+    }
+
+    .user-menu-btn:hover {
+      background: var(--color-gray-100);
+      border-color: var(--color-gray-300);
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, #ec4899 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 14px;
+      flex-shrink: 0;
     }
 
     .user-info {
-      display: flex;                                  /* Flexbox layout */
-      flex-direction: column;                         /* Stack vertically */
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      line-height: 1.2;
     }
 
     .user-name {
-      font-weight: 600;                               /* Semi-bold */
-      color: #2d3748;                                 /* Dark text */
+      font-weight: 700;
+      color: var(--color-text-primary);
+      font-size: 14px;
     }
 
-    .user-email {
-      font-size: 0.875rem;                            /* Smaller font */
-      color: #718096;                                 /* Gray text */
+    .user-role {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      font-weight: 500;
     }
 
-    /* Page content */
-    .page-content {
-      flex: 1;                                        /* Take remaining space */
-      padding: 1.5rem;                                /* Content padding */
-      overflow-y: auto;                               /* Scroll if needed */
+    .dropdown-icon {
+      color: var(--color-text-muted);
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
 
-    /* Page footer */
-    .page-footer {
-      padding: 1rem;                                  /* Padding */
-      text-align: center;                             /* Center text */
-      color: #718096;                                 /* Gray text */
-      font-size: 0.875rem;                            /* Smaller font */
-      border-top: 1px solid #e2e8f0;                  /* Top border */
-    }
-
-    /* Responsive styles */
     @media (max-width: 768px) {
-      .sidebar {
-        width: 260px !important;                      /* Full width on mobile */
+      .user-menu-btn {
+        padding: 6px;
+      }
+    }
+
+    /* =====================================================
+       USER DROPDOWN MENU
+       ===================================================== */
+    :host ::ng-deep .user-dropdown {
+      margin-top: 8px;
+      border-radius: 20px !important;
+      min-width: 280px !important;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+      border: 1px solid var(--color-border);
+      overflow: hidden;
+    }
+
+    .menu-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--color-primary-50) 0%, #fdf2f8 100%);
+    }
+
+    .menu-avatar {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, #ec4899 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    }
+
+    .menu-user-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .menu-user-name {
+      font-weight: 700;
+      color: var(--color-text-primary);
+      font-size: 16px;
+    }
+
+    .menu-user-email {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+    }
+
+    .logout-item {
+      color: var(--color-danger) !important;
+    }
+
+    .logout-item mat-icon {
+      color: var(--color-danger) !important;
+    }
+
+    /* =====================================================
+       MAIN CONTENT
+       ===================================================== */
+    .main-content {
+      flex: 1;
+      padding: 24px 32px;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 16px;
+      }
+    }
+
+    /* =====================================================
+       MOBILE SIDEBAR
+       ===================================================== */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.visible {
+      display: block;
+      opacity: 1;
+    }
+
+    .mobile-sidebar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 300px;
+      background: linear-gradient(180deg, #4c1d95 0%, #5b21b6 50%, #6d28d9 100%);
+      z-index: 300;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      flex-direction: column;
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .mobile-sidebar.open {
+      transform: translateX(0);
+    }
+
+    @media (max-width: 768px) {
+      .mobile-sidebar {
+        display: flex;
+      }
+    }
+
+    .mobile-sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .close-btn mat-icon {
+      color: white;
+    }
+
+    /* Mobile Credits */
+    .mobile-credits {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 16px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+    }
+
+    .mobile-credits .credits-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+    }
+
+    .mobile-credits .credits-icon mat-icon {
+      font-size: 26px;
+      width: 26px;
+      height: 26px;
+      color: #1f2937;
+    }
+
+    .mobile-credits .credits-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mobile-credits .credits-value {
+      font-family: var(--font-family-display);
+      font-size: 22px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .mobile-credits .credits-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 600;
+    }
+
+    /* =====================================================
+       RESPONSIVE HELPERS
+       ===================================================== */
+    .hide-mobile {
+      display: block;
+    }
+
+    .hide-desktop {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .hide-mobile {
+        display: none !important;
       }
       
-      .page-content {
-        padding: 1rem;                                /* Less padding on mobile */
+      .hide-desktop {
+        display: block !important;
       }
     }
   `]
 })
-export class ParentLayoutComponent {
-  // -------------------------------------------------
-  // NAVIGATION ITEMS
-  // Configuration for sidebar menu items
-  // -------------------------------------------------
-  
-  // Define navigation items with icons, routes, and labels
-  navItems = [
-    { 
-      icon: 'dashboard',           // Material icon name
-      label: 'Dashboard',          // Display label
-      route: '/parent/dashboard',  // Router link
-      exact: true                  // Exact route matching
-    },
-    { 
-      icon: 'people', 
-      label: 'My Children', 
-      route: '/parent/children',
-      exact: false
-    },
-    { 
-      icon: 'search', 
-      label: 'Browse Activities', 
-      route: '/parent/activities',
-      exact: false
-    },
-    { 
-      icon: 'event', 
-      label: 'My Bookings', 
-      route: '/parent/bookings',
-      exact: false
-    },
-    { 
-      icon: 'schedule', 
-      label: 'Waitlist', 
-      route: '/parent/waitlist',
-      exact: false,
-      badge: signal(2)             // Signal for dynamic badge count
-    },
-    { 
-      icon: 'notifications', 
-      label: 'Notifications', 
-      route: '/parent/notifications',
-      exact: false,
-      badge: signal(5)             // Unread notification count
-    },
-    { 
-      icon: 'settings', 
-      label: 'Settings', 
-      route: '/parent/settings',
-      exact: false
-    }
+export class ParentLayoutComponent implements OnInit {
+  sidebarCollapsed = signal(false);
+  mobileSidebarOpen = signal(false);
+  credits = signal(7);
+  totalCredits = signal(10);
+  notificationCount = signal(3);
+
+  navItems: NavItem[] = [
+    { icon: 'dashboard', label: 'Dashboard', route: '/parent/dashboard' },
+    { icon: 'search', label: 'Browse Activities', route: '/parent/activities' },
+    { icon: 'face', label: 'My Children', route: '/parent/children' },
+    { icon: 'calendar_today', label: 'Bookings', route: '/parent/bookings' },
+    { icon: 'schedule', label: 'Waitlist', route: '/parent/waitlist', badge: 2 },
+    { icon: 'notifications', label: 'Notifications', route: '/parent/notifications', badge: 3 },
+    { icon: 'settings', label: 'Settings', route: '/parent/settings' }
   ];
 
-  // -------------------------------------------------
-  // STATE SIGNALS
-  // Reactive state management
-  // -------------------------------------------------
-  
-  // Whether sidebar is collapsed (desktop only)
-  sidebarCollapsed = signal<boolean>(false);
-  
-  // Whether device is mobile (based on viewport width)
-  isMobile = signal<boolean>(window.innerWidth < 768);
-  
-  // Current page title
-  pageTitle = signal<string>('Dashboard');
-  
-  // Credits remaining count
-  creditsRemaining = signal<number>(7);
-  
-  // Unread notifications count
-  unreadNotifications = signal<number>(5);
-
-  // -------------------------------------------------
-  // COMPUTED VALUES FROM AUTH SERVICE
-  // -------------------------------------------------
-  
-  // User's display name
-  userName = computed(() => this.authService.userName());
-  
-  // User's email
-  userEmail = computed(() => this.authService.currentUser()?.email ?? '');
-  
-  // User's initials for avatar
+  userName = computed(() => this.authService.userFullName() || 'Parent');
+  userEmail = computed(() => this.authService.currentUser()?.email || '');
   userInitials = computed(() => {
-    const user = this.authService.currentUser();         // Get current user
-    if (!user) return '';                                 // Return empty if no user
-    const first = user.firstName?.charAt(0) ?? '';       // First initial
-    const last = user.lastName?.charAt(0) ?? '';         // Last initial
-    return (first + last).toUpperCase();                 // Combine and uppercase
+    const user = this.authService.currentUser();
+    if (user) {
+      return (user.firstName?.[0] || '') + (user.lastName?.[0] || '');
+    }
+    return 'P';
   });
 
-  /**
-   * Constructor - Inject dependencies
-   * @param authService - Authentication service
-   */
-  constructor(private authService: AuthService) {
-    // Listen for window resize to update mobile state
-    window.addEventListener('resize', () => {
-      this.isMobile.set(window.innerWidth < 768);
-    });
+  creditsPercentage = computed(() => (this.credits() / this.totalCredits()) * 100);
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    // Initialize
   }
 
-  /**
-   * toggleSidebar - Toggle sidebar collapsed state
-   */
+  getGreeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
   toggleSidebar(): void {
-    this.sidebarCollapsed.update(collapsed => !collapsed);
+    this.sidebarCollapsed.update(v => !v);
   }
 
-  /**
-   * onNavItemClick - Handle navigation item click
-   * Closes sidebar on mobile after navigation
-   */
-  onNavItemClick(): void {
-    // Close sidebar on mobile after clicking nav item
-    // This provides better UX on small screens
+  toggleMobileSidebar(): void {
+    this.mobileSidebarOpen.update(v => !v);
   }
 
-  /**
-   * logout - Log out the current user
-   */
   logout(): void {
     this.authService.logout();
   }

@@ -1,392 +1,421 @@
 // =====================================================
 // NEXUS FAMILY PASS - VENUE LAYOUT COMPONENT
-// Layout shell for Venue Admin Portal with navigation
-// for activity management, bookings, and performance
+// Layout for venue admin portal
 // =====================================================
 
-// Import Angular core
-import { Component, signal, computed } from '@angular/core';
-
-// Import CommonModule
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-// Import Router modules
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-
-// Import Angular Material modules
+import { RouterModule, RouterOutlet, Router } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatListModule } from '@angular/material/list';
-import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDividerModule } from '@angular/material/divider';
 
-// Import AuthService
 import { AuthService } from '../../core/services/auth.service';
 
-/**
- * VenueLayoutComponent - Venue Admin Portal Layout
- * 
- * Provides layout structure for venue administrators:
- * - Dashboard with performance score
- * - Activity management
- * - Booking calendar and attendance
- * - Performance analytics
- */
+interface NavItem {
+  icon: string;
+  label: string;
+  route: string;
+  badge?: number;
+}
+
 @Component({
-  // Component selector
   selector: 'app-venue-layout',
-  
-  // Standalone component
   standalone: true,
-  
-  // Required imports
   imports: [
     CommonModule,
+    RouterModule,
     RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
     MatSidenavModule,
     MatToolbarModule,
-    MatListModule,
-    MatIconModule,
     MatButtonModule,
+    MatIconModule,
     MatMenuModule,
-    MatDividerModule,
     MatTooltipModule,
-    MatProgressBarModule
+    MatDividerModule
   ],
-  
-  // Component template
   template: `
-    <!-- Layout container -->
-    <mat-sidenav-container class="layout-container">
-      
-      <!-- Sidebar navigation -->
-      <mat-sidenav 
-        #sidenav
-        [mode]="isMobile() ? 'over' : 'side'"
-        [opened]="!isMobile()"
-        class="sidebar">
-        
-        <!-- Sidebar header -->
+    <div class="layout-container">
+      <!-- Sidebar -->
+      <aside class="sidebar" [class.collapsed]="sidebarCollapsed()">
         <div class="sidebar-header">
-          <div class="logo">
-            <mat-icon class="logo-icon">store</mat-icon>
-            <span class="logo-text">Venue Portal</span>
-          </div>
-        </div>
-
-        <mat-divider></mat-divider>
-
-        <!-- Venue info card -->
-        <div class="venue-info">
-          <span class="venue-name">Code Ninjas West</span>
-          <div class="score-container">
-            <span class="score-label">Performance Score</span>
-            <div class="score-display">
-              <span class="score-value">{{ venueScore() }}</span>
-              <span class="score-max">/100</span>
+          <div class="logo" *ngIf="!sidebarCollapsed()">
+            <div class="logo-icon">
+              <mat-icon>storefront</mat-icon>
             </div>
-            <mat-progress-bar 
-              mode="determinate" 
-              [value]="venueScore()"
-              [color]="getScoreColor()">
-            </mat-progress-bar>
+            <div class="logo-text">
+              <span class="logo-title">Nexus</span>
+              <span class="logo-subtitle">Venue Portal</span>
+            </div>
+          </div>
+          <div class="logo-mini" *ngIf="sidebarCollapsed()">
+            <mat-icon>storefront</mat-icon>
           </div>
         </div>
 
-        <!-- Navigation list -->
-        <mat-nav-list class="nav-list">
-          <a 
-            mat-list-item
-            *ngFor="let item of navItems"
-            [routerLink]="item.route"
-            routerLinkActive="active"
-            class="nav-item">
-            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-            <span matListItemTitle>{{ item.label }}</span>
-            <span *ngIf="item.badge" class="nav-badge">{{ item.badge }}</span>
+        <nav class="sidebar-nav">
+          <a *ngFor="let item of navItems"
+             [routerLink]="item.route"
+             routerLinkActive="active"
+             class="nav-item"
+             [matTooltip]="sidebarCollapsed() ? item.label : ''"
+             matTooltipPosition="right">
+            <div class="nav-icon">
+              <mat-icon>{{ item.icon }}</mat-icon>
+              <span class="nav-badge" *ngIf="item.badge">{{ item.badge }}</span>
+            </div>
+            <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
           </a>
-        </mat-nav-list>
+        </nav>
 
-        <!-- Quick actions -->
-        <div class="sidebar-actions">
-          <mat-divider></mat-divider>
-          <button mat-stroked-button color="accent" class="action-btn" routerLink="/venue/activities/new">
-            <mat-icon>add</mat-icon>
-            Add New Activity
-          </button>
+        <div class="sidebar-stats" *ngIf="!sidebarCollapsed()">
+          <div class="stat-card">
+            <div class="stat-row">
+              <span class="stat-label">Today's Bookings</span>
+              <span class="stat-value">{{ todayBookings() }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">This Month Revenue</span>
+              <span class="stat-value">{{ '$' + monthRevenue() }}</span>
+            </div>
+          </div>
         </div>
-      </mat-sidenav>
 
-      <!-- Main content -->
-      <mat-sidenav-content class="main-content">
-        
-        <!-- Top toolbar -->
-        <mat-toolbar class="top-toolbar venue-toolbar">
-          <button mat-icon-button (click)="sidenav.toggle()" *ngIf="isMobile()">
-            <mat-icon>menu</mat-icon>
-          </button>
-          
-          <span class="toolbar-title">Venue Dashboard</span>
-          <span class="toolbar-spacer"></span>
+        <button class="collapse-toggle" (click)="toggleSidebar()">
+          <mat-icon>{{ sidebarCollapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+        </button>
+      </aside>
 
-          <!-- Today's bookings indicator -->
-          <div class="today-bookings" matTooltip="Today's bookings">
-            <mat-icon>event</mat-icon>
-            <span>{{ todayBookings() }} bookings today</span>
+      <!-- Main Content Area -->
+      <div class="main-wrapper" [class.sidebar-collapsed]="sidebarCollapsed()">
+        <header class="header">
+          <div class="header-left">
+            <button mat-icon-button class="menu-toggle hide-desktop" (click)="toggleMobileSidebar()">
+              <mat-icon>menu</mat-icon>
+            </button>
+            <div class="page-info hide-mobile">
+              <h1 class="page-title">Venue Dashboard</h1>
+              <p class="page-subtitle">Manage your activities and bookings</p>
+            </div>
           </div>
 
-          <!-- User menu -->
-          <button mat-icon-button [matMenuTriggerFor]="userMenu">
-            <div class="user-avatar">{{ userInitials() }}</div>
-          </button>
-
-          <mat-menu #userMenu="matMenu">
-            <div class="user-menu-header">
-              <span class="user-name">{{ userName() }}</span>
-              <span class="user-role">Venue Administrator</span>
-            </div>
-            <mat-divider></mat-divider>
-            <button mat-menu-item routerLink="/venue/settings">
-              <mat-icon>settings</mat-icon>
-              <span>Venue Settings</span>
+          <div class="header-right">
+            <button mat-icon-button class="notification-btn">
+              <mat-icon>notifications</mat-icon>
+              <span class="notification-badge" *ngIf="notificationCount() > 0">{{ notificationCount() }}</span>
             </button>
-            <button mat-menu-item (click)="logout()">
-              <mat-icon>logout</mat-icon>
-              <span>Logout</span>
-            </button>
-          </mat-menu>
-        </mat-toolbar>
 
-        <!-- Page content -->
-        <main class="page-content">
+            <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-btn">
+              <div class="user-avatar">{{ userInitials() }}</div>
+              <span class="user-name hide-mobile">{{ userName() }}</span>
+              <mat-icon class="hide-mobile">expand_more</mat-icon>
+            </button>
+
+            <mat-menu #userMenu="matMenu" class="user-dropdown">
+              <div class="menu-header">
+                <div class="menu-avatar">{{ userInitials() }}</div>
+                <div class="menu-user-info">
+                  <span class="menu-user-name">{{ userName() }}</span>
+                  <span class="menu-user-role">Venue Administrator</span>
+                </div>
+              </div>
+              <mat-divider></mat-divider>
+              <button mat-menu-item routerLink="/venue/settings">
+                <mat-icon>settings</mat-icon>
+                <span>Settings</span>
+              </button>
+              <mat-divider></mat-divider>
+              <button mat-menu-item (click)="logout()" class="logout-item">
+                <mat-icon>logout</mat-icon>
+                <span>Sign Out</span>
+              </button>
+            </mat-menu>
+          </div>
+        </header>
+
+        <main class="main-content">
           <router-outlet></router-outlet>
         </main>
+      </div>
 
-        <!-- Footer -->
-        <footer class="page-footer">
-          <p>&copy; 2024 Nexus Family Pass - Venue Portal</p>
-        </footer>
-      </mat-sidenav-content>
-    </mat-sidenav-container>
+      <!-- Mobile Sidebar Overlay -->
+      <div class="sidebar-overlay" [class.visible]="mobileSidebarOpen()" (click)="toggleMobileSidebar()"></div>
+
+      <!-- Mobile Sidebar -->
+      <aside class="mobile-sidebar" [class.open]="mobileSidebarOpen()">
+        <div class="sidebar-header">
+          <div class="logo">
+            <div class="logo-icon"><mat-icon>storefront</mat-icon></div>
+            <div class="logo-text">
+              <span class="logo-title">Nexus</span>
+              <span class="logo-subtitle">Venue Portal</span>
+            </div>
+          </div>
+          <button mat-icon-button (click)="toggleMobileSidebar()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a *ngFor="let item of navItems"
+             [routerLink]="item.route"
+             routerLinkActive="active"
+             class="nav-item"
+             (click)="toggleMobileSidebar()">
+            <div class="nav-icon"><mat-icon>{{ item.icon }}</mat-icon></div>
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        </nav>
+      </aside>
+    </div>
   `,
-  
-  // Component styles
   styles: [`
-    /* Layout container */
-    .layout-container { height: 100vh; }
+    .layout-container { display: flex; min-height: 100vh; background: var(--color-background); }
 
-    /* Sidebar */
     .sidebar {
-      width: 260px;
-      background-color: #1a202c;
-    }
-
-    .sidebar-header {
-      padding: 1rem;
-      min-height: 64px;
+      width: 280px;
+      background: linear-gradient(180deg, #c2410c 0%, #ea580c 50%, #f97316 100%);
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+      transition: width 0.3s ease;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+
+      &.collapsed { width: 80px; }
+      @media (max-width: 768px) { display: none; }
     }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    .sidebar-header { padding: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    .logo { display: flex; align-items: center; gap: 12px; }
+
+    .logo-icon {
+      width: 48px; height: 48px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      mat-icon { font-size: 28px; width: 28px; height: 28px; color: white; }
     }
 
-    .logo-icon { color: #ed8936; font-size: 28px; width: 28px; height: 28px; }
-    .logo-text { color: white; font-size: 1.125rem; font-weight: 600; }
+    .logo-text { display: flex; flex-direction: column; }
+    .logo-title { font-family: var(--font-family-display); font-size: 20px; font-weight: 800; color: white; }
+    .logo-subtitle { font-size: 12px; color: rgba(255, 255, 255, 0.7); font-weight: 600; }
 
-    /* Venue info */
-    .venue-info {
-      padding: 1rem;
+    .logo-mini {
+      width: 48px; height: 48px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto;
+      mat-icon { font-size: 28px; width: 28px; height: 28px; color: white; }
     }
 
-    .venue-name { 
-      color: white; 
-      font-weight: 600; 
-      font-size: 1.125rem;
-      display: block;
-      margin-bottom: 1rem;
-    }
-
-    .score-container {
-      background-color: rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      padding: 0.75rem;
-    }
-
-    .score-label {
-      color: #a0aec0;
-      font-size: 0.75rem;
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-
-    .score-display {
-      display: flex;
-      align-items: baseline;
-      margin-bottom: 0.5rem;
-    }
-
-    .score-value {
-      color: #48bb78;
-      font-size: 2rem;
-      font-weight: 700;
-    }
-
-    .score-max {
-      color: #718096;
-      font-size: 1rem;
-      margin-left: 0.25rem;
-    }
-
-    /* Navigation */
-    .nav-list { padding: 0.5rem 0; }
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
 
     .nav-item {
-      color: #a0aec0 !important;
-      margin: 0.25rem 0.5rem;
-      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      margin-bottom: 6px;
+      border-radius: 14px;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: all 0.2s ease;
+
+      &:hover { background: rgba(255, 255, 255, 0.15); color: white; }
+      &.active { background: rgba(255, 255, 255, 0.25); color: white; }
     }
 
-    .nav-item:hover { 
-      background-color: rgba(255, 255, 255, 0.1) !important; 
-      color: white !important; 
-    }
-
-    .nav-item.active { 
-      background-color: #ed8936 !important; 
-      color: white !important; 
+    .nav-icon {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px;
+      mat-icon { font-size: 24px; width: 24px; height: 24px; color: rgba(255, 255, 255, 0.8); }
     }
 
     .nav-badge {
-      background-color: #e53e3e;
+      position: absolute;
+      top: -6px; right: -6px;
+      min-width: 18px; height: 18px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      border-radius: 50%;
       color: white;
-      font-size: 0.75rem;
-      padding: 0.125rem 0.5rem;
-      border-radius: 999px;
-      margin-left: auto;
+      font-size: 10px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
     }
 
-    /* Sidebar actions */
-    .sidebar-actions {
-      margin-top: auto;
-      padding: 1rem;
+    .nav-label { font-size: 15px; font-weight: 600; white-space: nowrap; }
+    .sidebar.collapsed .nav-item { justify-content: center; padding: 14px; }
+
+    .sidebar-stats { padding: 16px; margin-top: auto; }
+    .stat-card { background: rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 16px; }
+    .stat-row {
+      display: flex; justify-content: space-between; align-items: center; padding: 8px 0;
+      &:not(:last-child) { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    }
+    .stat-label { font-size: 12px; color: rgba(255, 255, 255, 0.7); font-weight: 600; }
+    .stat-value { font-size: 16px; color: white; font-weight: 800; }
+
+    .collapse-toggle {
+      position: absolute;
+      right: -14px; top: 50%;
+      transform: translateY(-50%);
+      width: 28px; height: 28px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      mat-icon { font-size: 18px; width: 18px; height: 18px; color: #ea580c; }
+      &:hover { transform: translateY(-50%) scale(1.1); }
+      @media (max-width: 768px) { display: none; }
     }
 
-    .action-btn {
-      width: 100%;
-      margin-top: 1rem;
-    }
-
-    /* Main content */
-    .main-content {
+    .main-wrapper {
+      flex: 1;
+      margin-left: 280px;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      background-color: #f7fafc;
+      transition: margin-left 0.3s ease;
+      background: var(--color-background);
+
+      &.sidebar-collapsed { margin-left: 80px; }
+      @media (max-width: 768px) { margin-left: 0 !important; }
     }
 
-    .venue-toolbar {
-      background-color: #ed8936 !important;
+    .header {
+      background: white;
+      padding: 16px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--color-border);
+      position: sticky; top: 0; z-index: 50;
+      @media (max-width: 768px) { padding: 12px 16px; }
     }
 
-    .top-toolbar { position: sticky; top: 0; z-index: 100; }
-    .toolbar-title { font-size: 1.125rem; font-weight: 500; }
-    .toolbar-spacer { flex: 1; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .page-title { font-family: var(--font-family-display); font-size: 24px; font-weight: 700; margin: 0; }
+    .page-subtitle { font-size: 14px; color: var(--color-text-secondary); margin: 0; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
 
-    .today-bookings {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      background-color: rgba(255, 255, 255, 0.2);
-      padding: 0.5rem 1rem;
-      border-radius: 999px;
-      font-size: 0.875rem;
-      margin-right: 1rem;
+    .notification-btn {
+      position: relative;
+      width: 44px; height: 44px;
+      border-radius: 12px !important;
+      background: var(--color-gray-100);
+      mat-icon { color: var(--color-text-secondary); }
+      &:hover { background: rgba(249, 115, 22, 0.1); mat-icon { color: #ea580c; } }
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: 4px; right: 4px;
+      min-width: 20px; height: 20px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      border-radius: 10px;
+      color: white;
+      font-size: 11px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid white;
+    }
+
+    .user-menu-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 12px 6px 6px;
+      border-radius: 12px !important;
+      background: var(--color-gray-50);
+      border: 1px solid var(--color-border);
     }
 
     .user-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background-color: rgba(255, 255, 255, 0.3);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.875rem;
-      font-weight: 600;
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 800; font-size: 14px;
     }
 
-    .user-menu-header {
-      padding: 1rem;
-      display: flex;
+    .user-name { font-weight: 600; color: var(--color-text-primary); font-size: 14px; }
+
+    ::ng-deep .user-dropdown { margin-top: 8px; border-radius: 16px !important; min-width: 260px !important; }
+
+    .menu-header { display: flex; align-items: center; gap: 14px; padding: 16px; }
+    .menu-avatar {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 800; font-size: 18px;
+    }
+    .menu-user-info { display: flex; flex-direction: column; }
+    .menu-user-name { font-weight: 700; font-size: 15px; }
+    .menu-user-role { font-size: 13px; color: var(--color-text-secondary); }
+    .logout-item { color: var(--color-danger) !important; mat-icon { color: var(--color-danger) !important; } }
+
+    .main-content { flex: 1; padding: 24px 32px; @media (max-width: 768px) { padding: 16px; } }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      &.visible { display: block; opacity: 1; }
+    }
+
+    .mobile-sidebar {
+      display: none;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 300px;
+      background: linear-gradient(180deg, #c2410c 0%, #ea580c 50%, #f97316 100%);
+      z-index: 300;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
       flex-direction: column;
+
+      &.open { transform: translateX(0); }
+      @media (max-width: 768px) { display: flex; }
+      .sidebar-header { display: flex; align-items: center; justify-content: space-between; button mat-icon { color: white; } }
     }
 
-    .user-name { font-weight: 600; color: #2d3748; }
-    .user-role { font-size: 0.875rem; color: #718096; }
-
-    .page-content { flex: 1; padding: 1.5rem; overflow-y: auto; }
-
-    .page-footer {
-      padding: 1rem;
-      text-align: center;
-      color: #718096;
-      font-size: 0.875rem;
-      border-top: 1px solid #e2e8f0;
-    }
-
-    @media (max-width: 768px) {
-      .sidebar { width: 260px !important; }
-      .page-content { padding: 1rem; }
-      .today-bookings { display: none; }
-    }
+    .hide-mobile { @media (max-width: 768px) { display: none !important; } }
+    .hide-desktop { @media (min-width: 769px) { display: none !important; } }
   `]
 })
-export class VenueLayoutComponent {
-  // Navigation items for venue portal
-  navItems = [
+export class VenueLayoutComponent implements OnInit {
+  sidebarCollapsed = signal(false);
+  mobileSidebarOpen = signal(false);
+  todayBookings = signal(18);
+  monthRevenue = signal(4250);
+  notificationCount = signal(5);
+
+  navItems: NavItem[] = [
     { icon: 'dashboard', label: 'Dashboard', route: '/venue/dashboard' },
-    { icon: 'local_activity', label: 'Activities', route: '/venue/activities' },
+    { icon: 'event', label: 'Activities', route: '/venue/activities' },
     { icon: 'calendar_today', label: 'Bookings', route: '/venue/bookings', badge: 3 },
     { icon: 'trending_up', label: 'Performance', route: '/venue/performance' },
     { icon: 'settings', label: 'Settings', route: '/venue/settings' }
   ];
 
-  // State signals
-  isMobile = signal<boolean>(window.innerWidth < 768);
-  venueScore = signal<number>(87);
-  todayBookings = signal<number>(12);
-
-  // Computed values from auth service
-  userName = computed(() => this.authService.userName());
+  userName = computed(() => this.authService.userFullName() || 'Venue Admin');
   userInitials = computed(() => {
     const user = this.authService.currentUser();
-    if (!user) return '';
-    return (user.firstName?.charAt(0) + user.lastName?.charAt(0)).toUpperCase();
+    return user ? (user.firstName?.[0] || '') + (user.lastName?.[0] || '') : 'VA';
   });
 
-  constructor(private authService: AuthService) {
-    window.addEventListener('resize', () => this.isMobile.set(window.innerWidth < 768));
-  }
+  constructor(private authService: AuthService, private router: Router) {}
 
-  // Get color based on score
-  getScoreColor(): 'primary' | 'accent' | 'warn' {
-    const score = this.venueScore();
-    if (score >= 80) return 'primary';     // Green/good
-    if (score >= 60) return 'accent';      // Yellow/warning
-    return 'warn';                          // Red/danger
-  }
+  ngOnInit(): void {}
 
-  logout(): void {
-    this.authService.logout();
-  }
+  toggleSidebar(): void { this.sidebarCollapsed.update(v => !v); }
+  toggleMobileSidebar(): void { this.mobileSidebarOpen.update(v => !v); }
+  logout(): void { this.authService.logout(); }
 }
