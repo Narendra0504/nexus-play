@@ -1,0 +1,285 @@
+# =============================================================================
+# NEXUS FAMILY PASS - PROJECT CONFIGURATION
+# =============================================================================
+# This file configures the Python project, including build system, metadata,
+# and tool configurations (ruff, black, mypy, pytest).
+# =============================================================================
+
+[build-system]
+# Using setuptools as the build backend
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# =============================================================================
+# PROJECT METADATA
+# =============================================================================
+name = "nexus-backend"
+version = "0.1.0"
+description = "Backend API for Nexus Family Pass - B2B2C Kids Activity Platform"
+readme = "README.md"
+license = {text = "Proprietary"}
+requires-python = ">=3.11"
+
+# Author information
+authors = [
+    {name = "Nexus Team", email = "dev@nexusfamilypass.com"}
+]
+
+# Project keywords for discoverability
+keywords = [
+    "fastapi",
+    "kids-activities",
+    "b2b2c",
+    "langchain",
+    "ai",
+    "venue-management"
+]
+
+# Classifiers for PyPI (not published, but good practice)
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+]
+
+# Dependencies are managed in requirements.txt for better compatibility
+# with deployment tools that expect requirements.txt
+dynamic = ["dependencies"]
+
+[project.urls]
+# Project URLs
+Homepage = "https://nexusfamilypass.com"
+Documentation = "https://docs.nexusfamilypass.com"
+Repository = "https://github.com/nexus/backend"
+
+[project.scripts]
+# CLI entry points (if needed in future)
+# nexus-api = "app.main:run"
+
+[tool.setuptools]
+# Package discovery configuration
+packages = ["app", "scripts"]
+package-dir = {"" = "."}
+
+[tool.setuptools.dynamic]
+# Read dependencies from requirements.txt
+dependencies = {file = ["requirements.txt"]}
+
+# =============================================================================
+# RUFF CONFIGURATION
+# =============================================================================
+# Ruff is a fast Python linter that replaces flake8, isort, and more
+[tool.ruff]
+# Target Python version
+target-version = "py311"
+
+# Maximum line length (matches Black)
+line-length = 100
+
+# Exclude common directories
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "alembic/versions",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+# Enable specific rule sets
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # Pyflakes
+    "I",     # isort
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "UP",    # pyupgrade
+    "ARG",   # flake8-unused-arguments
+    "SIM",   # flake8-simplify
+]
+
+# Ignore specific rules
+ignore = [
+    "E501",  # Line too long (handled by formatter)
+    "B008",  # Do not perform function calls in argument defaults (FastAPI Depends)
+    "B904",  # Within an except clause, raise from error
+    "ARG001", # Unused function argument (common in FastAPI dependencies)
+]
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.isort]
+# isort configuration for import sorting
+known-first-party = ["app"]
+known-third-party = ["fastapi", "pydantic", "sqlalchemy", "langchain"]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore specific rules in specific files
+"tests/*" = ["ARG001", "S101"]  # Allow unused args and assert in tests
+"alembic/*" = ["E402"]  # Allow imports not at top in migrations
+
+# =============================================================================
+# BLACK CONFIGURATION
+# =============================================================================
+# Black is the code formatter
+[tool.black]
+# Maximum line length
+line-length = 100
+
+# Target Python versions
+target-version = ["py311"]
+
+# Directories to exclude
+exclude = '''
+/(
+    \.git
+    | \.mypy_cache
+    | \.ruff_cache
+    | \.venv
+    | venv
+    | __pycache__
+    | alembic/versions
+    | build
+    | dist
+)/
+'''
+
+# =============================================================================
+# MYPY CONFIGURATION
+# =============================================================================
+# MyPy is the static type checker
+[tool.mypy]
+# Python version target
+python_version = "3.11"
+
+# Strict mode settings
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+# Ignore missing imports for third-party libraries without type stubs
+ignore_missing_imports = true
+
+# Show error codes in output
+show_error_codes = true
+
+# Exclude directories
+exclude = [
+    "venv",
+    "alembic/versions",
+    "tests",
+]
+
+# Per-module configuration
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "alembic.*"
+ignore_errors = true
+
+# =============================================================================
+# PYTEST CONFIGURATION
+# =============================================================================
+# Pytest is the testing framework
+[tool.pytest.ini_options]
+# Minimum pytest version
+minversion = "8.0"
+
+# Test discovery patterns
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Async mode configuration
+asyncio_mode = "auto"
+
+# Add options by default
+addopts = [
+    "-v",                      # Verbose output
+    "--strict-markers",        # Error on unknown markers
+    "--strict-config",         # Error on config issues
+    "-ra",                     # Show extra test summary
+    "--tb=short",              # Shorter traceback format
+]
+
+# Custom markers
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# Filter warnings
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+# =============================================================================
+# COVERAGE CONFIGURATION
+# =============================================================================
+# Coverage.py configuration for test coverage
+[tool.coverage.run]
+# Source directories to measure
+source = ["app"]
+
+# Enable branch coverage
+branch = true
+
+# Omit certain files
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/migrations/*",
+    "*/alembic/*",
+]
+
+# Parallel mode for async tests
+parallel = true
+
+[tool.coverage.report]
+# Fail if coverage is below threshold
+fail_under = 70
+
+# Exclude lines from coverage
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+# Show missing lines
+show_missing = true
+
+# Precision of coverage percentage
+precision = 2
+
+[tool.coverage.html]
+# HTML report output directory
+directory = "htmlcov"

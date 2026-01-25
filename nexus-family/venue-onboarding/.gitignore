@@ -1,0 +1,260 @@
+# =============================================================================
+# NEXUS FAMILY PASS - GIT IGNORE PATTERNS
+# =============================================================================
+# This file specifies which files and directories Git should ignore.
+# These patterns prevent sensitive data and generated files from being committed.
+# =============================================================================
+
+# =============================================================================
+# ENVIRONMENT AND SECRETS
+# =============================================================================
+# CRITICAL: Never commit these files - they contain sensitive credentials
+.env
+.env.local
+.env.*.local
+*.env
+
+# Secret keys and certificates
+*.pem
+*.key
+*.crt
+secrets/
+
+# =============================================================================
+# PYTHON
+# =============================================================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# =============================================================================
+# VIRTUAL ENVIRONMENTS
+# =============================================================================
+# Common virtual environment directory names
+venv/
+ENV/
+env/
+.venv/
+.ENV/
+.env.bak/
+env.bak/
+
+# Virtualenv
+virtualenv/
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+# Uncomment if not using poetry.lock for reproducible builds
+# poetry.lock
+
+# pdm
+.pdm.toml
+
+# =============================================================================
+# TESTING
+# =============================================================================
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# =============================================================================
+# TYPE CHECKING
+# =============================================================================
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# pytype
+.pytype/
+
+# pyre
+.pyre/
+
+# =============================================================================
+# IDE AND EDITORS
+# =============================================================================
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# =============================================================================
+# OPERATING SYSTEM
+# =============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# =============================================================================
+# LOGS AND DATABASES
+# =============================================================================
+# Log files
+*.log
+logs/
+log/
+
+# SQLite databases (local development)
+*.db
+*.sqlite
+*.sqlite3
+
+# PostgreSQL
+*.sql.bak
+
+# =============================================================================
+# ALEMBIC
+# =============================================================================
+# Don't ignore migration files, but ignore any local overrides
+# alembic/versions/ is tracked
+alembic/*.pyc
+
+# =============================================================================
+# CACHES AND TEMPORARY FILES
+# =============================================================================
+# General
+*.bak
+*.tmp
+*.temp
+.cache/
+cache/
+tmp/
+temp/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# =============================================================================
+# DOCUMENTATION
+# =============================================================================
+# Sphinx documentation
+docs/_build/
+
+# mkdocs documentation
+/site/
+
+# =============================================================================
+# DATA AND UPLOADS
+# =============================================================================
+# Uploaded files (if stored locally)
+uploads/
+media/
+
+# Data dumps and exports
+*.csv
+*.xlsx
+*.json.bak
+data/exports/
+data/backups/
+
+# However, we want to keep sample/seed data
+!data/seeds/
+
+# =============================================================================
+# PROJECT SPECIFIC
+# =============================================================================
+# Google API response caches (for development)
+.google_cache/
+cache/google_places/
+
+# AI model caches
+.langchain_cache/
+.embeddings_cache/
+
+# N8N workflow exports (may contain secrets)
+n8n_workflows/*.json
+
+# Backup files created during development
+*.backup
+*.bak

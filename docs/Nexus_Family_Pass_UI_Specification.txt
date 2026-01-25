@@ -1,0 +1,943 @@
+# NEXUS FAMILY PASS - COMPLETE UI SPECIFICATION FOR ANGULAR
+
+## PROJECT OVERVIEW
+
+Build a complete Angular 17+ application for "Nexus Family Pass" - a B2B2C platform where companies provide activity subscriptions for employees' children. The app has 4 user roles: Parent, HR Admin, Venue Admin, and Platform Admin.
+
+Use Angular standalone components, Angular Material UI library, TailwindCSS for styling, and follow a clean modern design with a primary color palette of blue (#2c5282) and teal (#319795) accents. The app should be fully responsive (mobile-first).
+
+---
+
+## GLOBAL COMPONENTS
+
+### 1. Top Navigation Bar
+- Logo on the left ("Nexus Family Pass" with a small icon)
+- For authenticated users: Show user name, avatar dropdown with options (Profile, Settings, Logout)
+- Notification bell icon with badge count for unread notifications
+- Role-based navigation links that change based on user type
+
+### 2. Side Navigation (for dashboard views)
+- Collapsible sidebar with icons and labels
+- Different menu items based on user role
+- Active state highlighting
+- Mobile: Hamburger menu that slides in from left
+
+### 3. Footer
+- Simple footer with Copyright, Terms of Service, Privacy Policy, Contact links
+- Social media icons (optional)
+
+---
+
+## AUTHENTICATION SCREENS
+
+### Screen: Login Page (/login)
+**Layout:** Centered card on gradient background
+
+**Components:**
+- Logo and tagline at top
+- Tab switcher: "Parent Login" | "Corporate Login" | "Venue Login"
+- Email input field with validation
+- Password input field with show/hide toggle
+- "Remember me" checkbox
+- "Forgot Password?" link
+- Primary login button
+- Divider with "OR"
+- "Sign in with SSO" button (for Corporate tab only)
+- Link at bottom: "Don't have an account? Contact your HR" (for parents) or "Request Access" (for venues)
+
+**Functionality:**
+- Form validation (email format, required fields)
+- Loading spinner on submit
+- Error toast for invalid credentials
+- Redirect to appropriate dashboard based on role
+
+### Screen: Forgot Password (/forgot-password)
+**Layout:** Centered card
+
+**Components:**
+- Back arrow to login
+- Title: "Reset your password"
+- Email input field
+- Submit button
+- Success message: "Check your email for reset instructions"
+
+### Screen: Reset Password (/reset-password/:token)
+**Layout:** Centered card
+
+**Components:**
+- New password input with strength indicator
+- Confirm password input
+- Password requirements checklist (8+ chars, uppercase, number, special)
+- Submit button
+- Success: Redirect to login with toast "Password updated successfully"
+
+---
+
+## PARENT PORTAL SCREENS
+
+### Screen: Parent Dashboard (/parent/dashboard)
+**Layout:** Sidebar + Main content area
+
+**Sidebar Menu Items:**
+- Dashboard (home icon)
+- My Children (users icon)
+- Browse Activities (search icon)
+- My Bookings (calendar icon)
+- Waitlist (clock icon)
+- Notifications (bell icon)
+- Settings (gear icon)
+
+**Main Content - Dashboard:**
+
+**Section 1: Welcome Banner**
+- "Welcome back, [Parent Name]!"
+- Current month and credit summary: "You have X credits remaining this month"
+- Progress bar showing credits used vs. total
+- Days remaining in billing cycle
+
+**Section 2: Monthly Curated Suggestions (Card Carousel)**
+- Title: "Picked for your children this month"
+- Horizontal scrollable cards (3 visible on desktop, 1 on mobile)
+- Each card shows:
+  - Activity image
+  - Activity name
+  - Venue name with performance score badge (e.g., "★ 4.8")
+  - Age range tag
+  - Date/time
+  - Which child it's recommended for (or "Great for Emma & Jake" for sibling matches)
+  - "Book Now" button (primary)
+  - "Not Interested" button (text/secondary)
+- "View All Suggestions" link
+
+**Section 3: Upcoming Bookings**
+- Title: "Coming up"
+- List of next 3 booked activities
+- Each item shows: Activity name, venue, date/time, child name, status badge (Confirmed/Pending)
+- "View All Bookings" link
+
+**Section 4: Quick Actions**
+- Grid of 4 action cards:
+  - "Search Activities" (with search icon)
+  - "Add a Child" (with plus icon)
+  - "View Waitlist" (with clock icon)
+  - "Manage Preferences" (with sliders icon)
+
+### Screen: My Children (/parent/children)
+**Layout:** Main content area
+
+**Components:**
+
+**Header:**
+- Title: "My Children"
+- "Add Child" button (primary, top right)
+
+**Children List (Card Grid - 2 columns desktop, 1 mobile):**
+Each child card shows:
+- Child's avatar/initials circle
+- Name and age
+- Interest tags (e.g., "STEM", "Arts", "High Energy")
+- "Activities this month: X"
+- "Edit Profile" button
+- "View Activity History" button
+
+**Empty State:**
+- Illustration
+- "No children added yet"
+- "Add your first child to start receiving personalized activity recommendations"
+- "Add Child" button
+
+### Screen: Add/Edit Child (/parent/children/new or /parent/children/:id/edit)
+**Layout:** Form card
+
+**Section 1: Basic Information**
+- Child's first name (required)
+- Date of birth (date picker, required)
+- Gender (optional dropdown: Boy/Girl/Non-binary/Prefer not to say)
+- Profile photo upload (optional, with crop functionality)
+
+**Section 2: Onboarding Quiz (for new children)**
+Title: "Help us understand [Name]'s preferences"
+
+Question 1: "What's [Name]'s energy level?"
+- Visual slider or 3 cards: "Calm & Focused" | "Balanced" | "High Energy"
+
+Question 2: "Does [Name] prefer..."
+- 3 cards: "Solo Activities" | "Small Groups" | "Big Social Settings"
+
+Question 3: "What interests [Name] most?"
+- Multi-select chips: STEM, Arts & Crafts, Music, Sports, Nature, Cooking, Reading, Building, Dance, Drama
+- Allow selecting up to 3
+
+**Section 3: Constraints (Accordion - collapsed by default)**
+- "Any activities to avoid?" - Multi-select: Competitive, Messy, Loud, Physical Contact
+- "Allergies or medical notes" - Text area (with note: "Shared with venues for safety")
+- "Accessibility needs" - Multi-select: Wheelchair accessible, Sensory-friendly, Hearing support, Visual support
+
+**Footer:**
+- Cancel button
+- Save button (primary)
+
+### Screen: Browse Activities (/parent/activities)
+**Layout:** Filter sidebar (collapsible on mobile) + Activity grid
+
+**Filter Sidebar:**
+
+**Natural Language Search (Prominent at top):**
+- Large text input with placeholder: "Describe what you're looking for... e.g., 'something creative but not messy'"
+- Search button with sparkle/AI icon
+- Helper text: "Try: 'outdoor activities for my 7-year-old that aren't competitive'"
+
+**Traditional Filters (Below NL search):**
+- "Or filter manually:" label
+- Child selector dropdown (to filter by specific child's fit)
+- Category multi-select: STEM, Arts, Sports, Music, Nature, Cooking, etc.
+- Age range slider
+- Date range picker
+- Time of day: Morning / Afternoon / Evening checkboxes
+- Distance slider (5-30 min drive)
+- Venue score minimum: Slider (Show only 70+, 80+, 90+)
+- "Group Activities" toggle (for sibling-friendly only)
+- Clear all filters link
+- Apply Filters button (mobile only)
+
+**Activity Grid:**
+- Responsive grid: 3 columns desktop, 2 tablet, 1 mobile
+- Each activity card:
+  - Activity image (top)
+  - Category tag (overlaid on image, e.g., "STEM")
+  - Activity name (bold)
+  - Venue name + score badge (★ 4.5)
+  - Age range: "Ages 5-10"
+  - Next available date/time
+  - Price in credits: "2 credits"
+  - Spots remaining: "3 spots left" (orange if <5) or "Waitlist" button if full
+  - "Book Now" button
+  - Heart icon to save/favorite
+
+**Sorting dropdown:** Relevance (default), Date, Distance, Venue Score, Credits (low-high)
+
+**Pagination:** Load more button or infinite scroll
+
+### Screen: Activity Detail (/parent/activities/:id)
+**Layout:** Single page with sections
+
+**Hero Section:**
+- Large activity image (carousel if multiple)
+- Back button overlay
+- Heart/favorite button overlay
+
+**Main Info Card:**
+- Activity name (large)
+- Venue name (clickable, shows venue score tooltip)
+- Venue score badge with breakdown tooltip: "★ 4.7 - Based on 156 reviews"
+- Category tags
+- Age range
+- Duration
+- Credits required
+
+**Section: Description**
+- Full activity description (AI-summarized if from venue)
+- "What your child will learn/experience" bullet points
+
+**Section: Schedule & Availability**
+- Calendar view showing available dates (current month)
+- Available time slots as selectable chips for selected date
+- Spots remaining per slot
+
+**Section: Booking Selection**
+- "Select Child" dropdown (shows all children with age compatibility indicator)
+- If multiple children: "Book for siblings together" toggle
+  - When enabled: Multi-select children checkboxes
+  - Shows combined credits required
+- Selected date/time summary
+- "Add to Waitlist" button (if slot is full)
+- "Book Now" button (primary, large)
+
+**Section: Venue Information (Collapsible)**
+- Venue name, address, map preview
+- Venue performance score with breakdown:
+  - Parent rating: 4.8/5
+  - Repeat booking rate: High
+  - Cancellation rate: Low
+- "View all activities at this venue" link
+
+**Section: Reviews**
+- Average rating with star display
+- Review count
+- List of recent reviews (show 3, "View all" expands)
+- Each review: Parent initials, rating, date, comment
+
+**Section: Similar Activities**
+- Horizontal scroll of 4-5 similar activity cards
+
+### Screen: Booking Confirmation Modal
+**Trigger:** After clicking "Book Now"
+
+**Content:**
+- Checkmark animation
+- "Booking Confirmed!"
+- Activity name
+- Date and time
+- Child name(s)
+- Venue address with "Get Directions" link
+- Credits deducted: "2 credits used"
+- Remaining credits: "8 credits left"
+- "Add to Calendar" button (generates .ics)
+- "View Booking Details" button
+- "Continue Browsing" link
+
+### Screen: My Bookings (/parent/bookings)
+**Layout:** Tabs + List
+
+**Tabs:** Upcoming | Past | Cancelled
+
+**Upcoming Tab:**
+- List of booking cards sorted by date (nearest first)
+- Each card:
+  - Activity image thumbnail
+  - Activity name
+  - Venue name
+  - Date, time, duration
+  - Child name(s) with avatars
+  - Status badge: Confirmed (green), Pending Confirmation (yellow)
+  - "Get Directions" button
+  - "Cancel Booking" button (text/danger)
+  - Expansion panel with: Venue contact, cancellation policy reminder
+
+**Past Tab:**
+- Similar cards but with:
+  - "Attended" or "No-Show" status
+  - "Leave Review" button (if not reviewed)
+  - "Book Again" button
+  - Feedback prompt if not yet given: "How was this activity? 👍 👎"
+
+**Cancelled Tab:**
+- Cards showing:
+  - Cancellation date
+  - Refund status: "Credit refunded" or "Credit forfeited (cancelled <48hrs)"
+  - Reason if provided
+
+### Screen: Cancel Booking Modal
+**Trigger:** Click "Cancel Booking"
+
+**Content:**
+- Warning icon
+- "Cancel this booking?"
+- Activity details summary
+- Cancellation policy notice:
+  - If >48hrs: "You will receive a full credit refund."
+  - If <48hrs: "Credits will be forfeited as per our 48-hour policy."
+- "Reason for cancellation" dropdown (optional): Schedule conflict, Child sick, Found better option, Other
+- "Keep Booking" button (primary)
+- "Cancel Booking" button (danger)
+
+### Screen: Waitlist (/parent/waitlist)
+**Layout:** List view
+
+**Header:**
+- Title: "My Waitlist"
+- Subtitle: "You'll be notified when spots open up"
+
+**Waitlist Items:**
+- Each card:
+  - Activity image thumbnail
+  - Activity name
+  - Venue name
+  - Desired date/time
+  - Child name
+  - Position in queue: "#3 in line"
+  - "Remove from Waitlist" button
+  - Note: "You'll have 4 hours to confirm when a spot opens"
+
+**Empty State:**
+- "Your waitlist is empty"
+- "Browse activities to join waitlists for full sessions"
+- "Browse Activities" button
+
+### Screen: Waitlist Spot Available Modal
+**Trigger:** Push notification or when visiting app
+
+**Content:**
+- Celebration icon
+- "A spot opened up!"
+- Activity details
+- "Confirm in the next X hours" countdown timer
+- Credits required
+- "Confirm Booking" button (primary)
+- "Pass" button (releases spot to next person)
+
+### Screen: Notifications (/parent/notifications)
+**Layout:** List view with filters
+
+**Filter Tabs:** All | Bookings | Suggestions | Waitlist | System
+
+**Notification List:**
+- Each notification:
+  - Icon based on type
+  - Title and description
+  - Timestamp (relative: "2 hours ago")
+  - Read/unread indicator (dot)
+  - Action button if applicable (e.g., "View Booking", "Confirm Spot")
+- "Mark all as read" link at top
+
+**Notification Types:**
+- Booking confirmed
+- Booking reminder (24 hrs before)
+- Booking cancelled by venue
+- Monthly suggestions ready
+- Waitlist spot available
+- Feedback request
+- Credits expiring soon
+- New activities at favorite venues
+
+### Screen: Parent Settings (/parent/settings)
+**Layout:** Settings sections
+
+**Section: Profile**
+- Name, email, phone
+- Profile photo
+- Edit button
+
+**Section: Notification Preferences**
+- Toggle for each channel: Email, SMS, WhatsApp, Push
+- Frequency: Immediate, Daily Digest, Weekly Summary
+- Notification types to enable/disable
+
+**Section: Location Preferences**
+- Home address (for distance calculations)
+- Work address (optional)
+- Child's school address (optional)
+- Default search radius slider
+
+**Section: Privacy**
+- "Allow coworker matching for group activities" toggle
+- "Download my data" button
+- "Delete my account" button (with confirmation flow)
+
+**Section: Linked Accounts**
+- Shows corporate account link
+- Company name
+- HR contact (if available)
+
+---
+
+## SIBLING/GROUP BOOKING SCREENS
+
+### Screen: Group Booking Flow (/parent/activities/:id/group-booking)
+**Layout:** Multi-step wizard
+
+**Step 1: Select Children**
+- Title: "Who's joining this activity?"
+- List of children with checkboxes
+- Each shows: Name, age, compatibility indicator (green check or yellow warning if edge of age range)
+- "All selected children must meet the age requirement (5-10)"
+
+**Step 2: Select Time Slot**
+- Show only slots with enough spots for selected group size
+- Calendar + time slot selection
+- "4 spots needed, 6 available" indicator
+
+**Step 3: Review & Confirm**
+- Activity summary
+- List of children attending
+- Total credits: "4 credits (2 per child)"
+- Confirm button
+
+---
+
+## HR ADMIN PORTAL SCREENS
+
+### Screen: HR Dashboard (/hr/dashboard)
+**Layout:** Sidebar + Main content
+
+**Sidebar Menu:**
+- Dashboard
+- Employees
+- Usage Reports
+- Subscription
+- Settings
+
+**Dashboard Main Content:**
+
+**Section 1: Overview Cards (4-column grid)**
+- Total Enrolled Employees: "247"
+- Active This Month: "198 (80%)"
+- Credits Used: "1,847 / 2,470 (75%)"
+- Avg. Satisfaction: "4.6 / 5.0"
+
+**Section 2: Utilization Chart**
+- Line chart showing monthly utilization trend (last 6 months)
+- Toggle: By department / Overall
+
+**Section 3: Department Breakdown (Table)**
+- Columns: Department, Employees, Credits Used, Utilization %
+- Sortable columns
+- No individual employee data shown - only aggregates
+- Note at bottom: "Individual activity data is private and not visible to administrators"
+
+**Section 4: Quick Actions**
+- "Download Monthly Report" button
+- "Invite Employees" button
+- "Manage Subscription" link
+
+### Screen: HR Employees (/hr/employees)
+**Layout:** Table view
+
+**Header:**
+- Title: "Enrolled Employees"
+- Search bar (by name or email)
+- "Invite Employees" button (primary)
+- "Download List" button
+
+**Table Columns:**
+- Name
+- Email
+- Department
+- Enrollment Date
+- Status (Active/Inactive)
+- Credits Allocated
+- Actions (Resend Invite, Deactivate)
+
+**Note Banner:**
+"For privacy, you cannot view employees' children or activity details. Only aggregate usage data is available."
+
+**Pagination:** 25/50/100 per page
+
+### Screen: Invite Employees Modal
+**Content:**
+- "Invite employees to Nexus Family Pass"
+- Option 1: Bulk upload CSV (template download link)
+- Option 2: Enter emails manually (text area, comma-separated)
+- Department assignment dropdown
+- Credits per employee input
+- "Send Invitations" button
+
+### Screen: HR Usage Reports (/hr/reports)
+**Layout:** Report builder
+
+**Filters:**
+- Date range picker
+- Department multi-select
+- Metric selector: Utilization, Satisfaction, Engagement
+
+**Report Sections:**
+
+**Chart 1: Utilization Over Time**
+- Line/bar chart
+- Compare departments toggle
+
+**Chart 2: Credit Usage Distribution**
+- Pie chart: Used vs. Unused vs. Expired
+
+**Chart 3: Satisfaction Trends**
+- Average rating over time
+
+**Data Table:**
+- Aggregate metrics by department
+- Export buttons: PDF, CSV, Excel
+
+**Important:** All data is aggregate. No individual employee or child data exposed.
+
+### Screen: HR Subscription (/hr/subscription)
+**Layout:** Subscription management
+
+**Current Plan Card:**
+- Plan name: "Enterprise"
+- Employees covered: 250
+- Credits per employee: 10/month
+- Monthly cost: $X,XXX
+- Renewal date
+- "Upgrade Plan" button
+- "Contact Sales" button
+
+**Billing History Table:**
+- Invoice date, amount, status, download link
+
+**Payment Method:**
+- Current card on file (masked)
+- "Update Payment" button
+
+---
+
+## VENUE ADMIN PORTAL SCREENS
+
+### Screen: Venue Dashboard (/venue/dashboard)
+**Layout:** Sidebar + Main content
+
+**Sidebar Menu:**
+- Dashboard
+- Activities
+- Bookings
+- Performance
+- Settings
+
+**Dashboard Content:**
+
+**Section 1: Performance Score Card (Prominent)**
+- Large score display: "87 / 100"
+- Trend indicator: ↑ 3 points this month
+- Breakdown:
+  - Parent Ratings: 4.7/5 (40%)
+  - Repeat Bookings: High (25%)
+  - Cancellation Rate: 2% (20%)
+  - Attendance Rate: 94% (15%)
+- "How to improve your score" link
+
+**Section 2: This Week's Bookings**
+- Summary: "23 bookings across 8 activities"
+- List of upcoming sessions with attendee counts
+- "View All Bookings" link
+
+**Section 3: Revenue Overview**
+- Chart: Bookings and revenue trend (last 30 days)
+- Total this month: $X,XXX
+
+**Section 4: Recent Reviews**
+- Last 3 reviews with ratings
+- "View All Reviews" link
+- "Respond to Reviews" link
+
+### Screen: Venue Activities (/venue/activities)
+**Layout:** Grid + Table toggle
+
+**Header:**
+- Title: "My Activities"
+- View toggle: Grid / List
+- "Add New Activity" button (primary)
+- Filter by: Status (Active/Paused/Draft), Category
+
+**Activity Cards (Grid View):**
+- Activity image
+- Name
+- Category tag
+- Age range
+- Status badge
+- Next scheduled session
+- Total bookings this month
+- "Edit" button
+- "Manage Schedule" button
+- "Pause/Activate" toggle
+
+### Screen: Add/Edit Activity (/venue/activities/new or /:id/edit)
+**Layout:** Multi-section form
+
+**Section 1: Basic Information**
+- Activity name (required)
+- Category dropdown (required)
+- Age range: Min and Max sliders
+- Duration dropdown: 30min, 45min, 1hr, 1.5hr, 2hr
+- Capacity per session (number input)
+- Credits required (number input)
+- Activity images (multi-upload, drag to reorder, first = primary)
+
+**Section 2: Description**
+- Short description (textarea, 150 char limit - for cards)
+- Full description (rich text editor)
+- "What children will learn" (bullet point editor)
+- "What to bring" (bullet point editor)
+
+**Section 3: Schedule**
+- Recurring schedule builder:
+  - Day of week checkboxes
+  - Time slot inputs (start time)
+  - Date range (start date - end date or ongoing)
+- Or: Manual date/time entry for one-off sessions
+- Block booking slots available to Nexus (number input)
+
+**Section 4: Tags & Accessibility**
+- Activity tags multi-select: Indoor, Outdoor, Messy, Competitive, Calm, Social, Solo-friendly
+- Accessibility features: Wheelchair accessible, Sensory-friendly, etc.
+
+**Section 5: Requirements**
+- Parent attendance required: Yes/No
+- Skill level: Beginner, Intermediate, Advanced
+- Prerequisites (text, optional)
+
+**Footer:**
+- "Save as Draft" button
+- "Publish Activity" button (primary)
+
+### Screen: Venue Bookings (/venue/bookings)
+**Layout:** Calendar + List view toggle
+
+**Calendar View:**
+- Monthly calendar with session blocks
+- Click session to see attendee list
+- Color coding: Confirmed (green), Pending (yellow), Past (gray)
+
+**List View:**
+- Filter by: Date range, Activity, Status
+- Table columns:
+  - Date/Time
+  - Activity Name
+  - Booked / Capacity
+  - Status
+  - Actions (View Details, Mark Attendance)
+
+### Screen: Session Attendance (/venue/bookings/:sessionId)
+**Layout:** Attendance management
+
+**Header:**
+- Activity name
+- Date and time
+- Booked: 12 / Capacity: 15
+
+**Attendee List:**
+- Table with columns:
+  - Child name (first name + last initial for privacy)
+  - Age
+  - Parent contact (revealed on day of activity only)
+  - Attendance status: Present / No-Show / Pending
+  - Notes (allergies, accessibility needs)
+- Bulk actions: "Mark All Present"
+
+**After Session:**
+- "Session Complete" button
+- Triggers attendance confirmation to platform
+
+### Screen: Venue Performance (/venue/performance)
+**Layout:** Analytics dashboard
+
+**Score Breakdown Card:**
+- Current score with gauge visualization
+- Historical trend (last 6 months)
+- Comparison to category average
+
+**Metrics Detail:**
+
+**Card 1: Parent Ratings**
+- Average rating
+- Rating distribution (5-star breakdown)
+- Recent review highlights
+
+**Card 2: Repeat Bookings**
+- Percentage of families who book again
+- Trend over time
+
+**Card 3: Cancellation Rate**
+- Your cancellations vs. parent cancellations
+- Comparison to platform average
+
+**Card 4: Attendance**
+- Show rate percentage
+- No-show trends
+
+**Improvement Suggestions:**
+- AI-generated tips based on weak areas
+- E.g., "Your ratings mention 'disorganized start times' - consider sending reminders 30 minutes before"
+
+### Screen: Venue Settings (/venue/settings)
+**Sections:**
+- Venue profile (name, address, description, photos, logo)
+- Contact information
+- Business hours
+- Booking policies (cancellation window, etc.)
+- Notification preferences
+- Banking/payout information
+- Insurance documentation upload (required annually)
+
+---
+
+## PLATFORM ADMIN SCREENS
+
+### Screen: Admin Dashboard (/admin/dashboard)
+**Layout:** Full admin sidebar + content
+
+**Sidebar:**
+- Dashboard
+- Venues
+- Corporate Accounts
+- Users
+- Bookings
+- Reports
+- System Settings
+
+**Dashboard:**
+- Key metrics: Total bookings, GMV, Active users, Active venues
+- Platform health indicators
+- Recent activity feed
+- Alerts (venues needing review, compliance issues)
+
+### Screen: Venue Management (/admin/venues)
+**Layout:** Table with filters
+
+**Filters:**
+- Status: Pending Approval, Active, Suspended
+- Performance score range
+- Location
+
+**Table:**
+- Venue name
+- Status
+- Performance score
+- Total bookings
+- Last activity
+- Actions: Approve, Suspend, View Details
+
+### Screen: Venue Approval Detail (/admin/venues/:id/review)
+**Content:**
+- Venue application details
+- Insurance documentation viewer
+- Background check status
+- Facility checklist
+- "Approve Venue" / "Reject with Feedback" buttons
+
+### Screen: Corporate Accounts (/admin/corporates)
+**Layout:** Account management table
+
+**Table:**
+- Company name
+- Plan type
+- Employees enrolled
+- Monthly spend
+- Utilization rate
+- Contract renewal date
+- Actions: View, Edit, Contact
+
+### Screen: System Settings (/admin/settings)
+**Sections:**
+- Credit pricing configuration
+- Platform fee percentage
+- Cancellation policy parameters
+- Notification templates
+- Feature flags (enable/disable features)
+- API keys management
+
+---
+
+## SHARED MODALS AND COMPONENTS
+
+### Feedback Modal (Post-Activity)
+**Trigger:** 1 hour after activity ends
+
+**Content:**
+- "How was [Activity Name]?"
+- Large thumbs up / thumbs down buttons
+- If thumbs up: "What did [Child] enjoy most?" - Optional chips (Fun, Educational, Social, Creative)
+- If thumbs down: "What could be better?" - Optional chips (Organization, Content, Instructor, Facility)
+- Optional text comment
+- "Submit" button
+- "Skip" link
+
+### Review Modal (Detailed Review)
+**Trigger:** From past bookings
+
+**Content:**
+- Star rating (1-5)
+- "Would you book this activity again?" Yes/No
+- "Would you recommend this venue?" Yes/No
+- Written review (optional)
+- "Submit Review" button
+
+### Credit Expiry Warning Modal
+**Trigger:** 7 days before month end
+
+**Content:**
+- "You have X credits expiring in Y days"
+- Quick suggestions for last-minute bookings
+- "Browse Last-Minute Activities" button
+- "Remind Me Later" button
+
+### Chat Interface Component (For NL Search)
+**Style:** Floating chat bubble (bottom right) or embedded in search
+
+**Features:**
+- Message input with send button
+- Chat history bubbles
+- Typing indicator
+- Quick suggestion chips below input: "Something outdoors", "Sibling activities", "STEM for beginners"
+- AI responses formatted with activity cards embedded in chat
+
+---
+
+## MOBILE-SPECIFIC CONSIDERATIONS
+
+### Bottom Navigation (Mobile Parent App)
+- Home (Dashboard)
+- Search (Browse Activities)
+- Bookings (Calendar icon)
+- Profile (Settings)
+
+### Pull-to-Refresh
+- Implement on all list views
+
+### Swipe Actions
+- Swipe left on booking to cancel
+- Swipe right on waitlist item to remove
+
+### Touch Targets
+- Minimum 44x44px for all interactive elements
+
+---
+
+## EMPTY STATES (For All List Views)
+
+Design empty states with:
+- Relevant illustration
+- Clear message explaining why it's empty
+- Primary action button to remedy
+
+Examples:
+- No children: "Add your first child to get started"
+- No bookings: "Browse activities to make your first booking"
+- No activities (venue): "Create your first activity listing"
+- No results (search): "No activities match your criteria. Try adjusting your filters"
+
+---
+
+## LOADING STATES
+
+- Skeleton loaders for cards and lists
+- Spinner for form submissions
+- Progress bar for multi-step processes
+- "Finding the best matches..." message with animation for AI search
+
+---
+
+## ERROR STATES
+
+- Form validation errors inline below fields (red text)
+- Toast notifications for action errors (top right)
+- Full-page error for critical failures (with retry button)
+- Offline banner: "You're offline. Some features may be unavailable."
+
+---
+
+## ACCESSIBILITY REQUIREMENTS
+
+- All images have alt text
+- Form labels properly associated
+- Keyboard navigation support
+- Focus indicators visible
+- Color contrast ratio minimum 4.5:1
+- Screen reader announcements for dynamic content
+- Skip to main content link
+
+---
+
+## TECHNICAL NOTES FOR ANGULAR IMPLEMENTATION
+
+- Use Angular Material components as base
+- Implement lazy loading for route modules
+- Use NgRx or signals for state management
+- Create shared component library for reusable elements
+- Implement route guards for role-based access
+- Use interceptors for auth token handling
+- Implement service workers for PWA capabilities
+- Use Angular CDK for drag-drop, virtual scrolling
+- Create abstract data services with mock implementations for demo
+
+---
+
+## DEMO DATA REQUIREMENTS
+
+For the demo, generate:
+- 3 sample parent accounts with 2-3 children each
+- 1 HR admin account
+- 2 venue admin accounts
+- 25-30 sample activities across categories
+- 50+ booking records (mix of upcoming, past, cancelled)
+- Sample reviews and ratings
+- Sample notifications
+
+All data should be realistic and demonstrate all features including sibling matching, venue scoring, and natural language search.

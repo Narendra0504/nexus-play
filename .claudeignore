@@ -1,0 +1,23 @@
+# Dependency Bloat (MASSIVE SAVINGS)
+node_modules/
+venv/
+__pycache__/
+.git/
+.angular/
+
+# Build Artifacts (Claude doesn't need to read compiled code)
+dist/
+build/
+coverage/
+
+# Assets (Claude doesn't need to read images/fonts)
+src/assets/
+*.png
+*.jpg
+*.svg
+*.ico
+
+# Lock files (They are huge and rarely needed for logic)
+package-lock.json
+yarn.lock
+poetry.lock

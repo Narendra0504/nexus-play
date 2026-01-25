@@ -1,0 +1,102 @@
+# =============================================================================
+# NEXUS FAMILY PASS - PYTHON DEPENDENCIES
+# =============================================================================
+# This file contains all Python packages required for the backend application.
+# Install using: pip install -r requirements.txt
+# =============================================================================
+
+# =============================================================================
+# CORE FRAMEWORK
+# FastAPI is our web framework - modern, fast, with automatic OpenAPI docs
+# =============================================================================
+fastapi==0.109.2          # Web framework with async support
+uvicorn[standard]==0.27.1 # ASGI server to run FastAPI
+pydantic==2.6.1           # Data validation using Python type hints
+pydantic-settings==2.2.0  # Settings management with environment variables
+python-multipart==0.0.9   # Form data parsing for file uploads
+
+# =============================================================================
+# DATABASE
+# SQLAlchemy for ORM, asyncpg for async PostgreSQL, alembic for migrations
+# =============================================================================
+sqlalchemy[asyncio]==2.0.25  # ORM with async support
+asyncpg==0.29.0              # Async PostgreSQL driver
+psycopg2-binary==2.9.9       # Sync PostgreSQL driver (for Alembic)
+alembic==1.13.1              # Database migration tool
+pgvector==0.2.5              # PostgreSQL vector extension support
+
+# =============================================================================
+# AI/ML STACK - AGENTIC ARCHITECTURE
+# LangChain ecosystem for AI orchestration, workflows, and tracing
+# =============================================================================
+langchain>=0.1.9,<0.3.0           # Core LangChain framework
+langchain-core>=0.1.0,<0.3.0      # LangChain core abstractions
+langchain-google-genai>=0.0.11    # Google Gemini integration for LangChain
+langchain-community>=0.0.24       # Community integrations
+langgraph>=0.0.26                 # LangGraph for stateful AI workflows
+langsmith>=0.1.5                  # LangSmith for AI tracing and monitoring
+
+# Google AI SDK for embeddings and direct API access
+google-generativeai>=0.4.0        # Direct Gemini API access
+
+# =============================================================================
+# HTTP CLIENTS
+# For calling external APIs (Google Places, etc.)
+# =============================================================================
+httpx==0.26.0                 # Modern async HTTP client
+aiohttp==3.9.3                # Alternative async HTTP (for some integrations)
+tenacity==8.2.3               # Retry logic for API calls
+
+# =============================================================================
+# SECURITY
+# Password hashing and security utilities
+# =============================================================================
+passlib[bcrypt]==1.7.4        # Password hashing with bcrypt
+python-jose[cryptography]==3.3.0  # JWT tokens (for Phase 2)
+
+# =============================================================================
+# UTILITIES
+# General purpose utilities and helpers
+# =============================================================================
+python-dotenv==1.0.1          # Load .env files
+python-slugify==8.0.4         # Generate URL-friendly slugs
+orjson==3.9.13                # Fast JSON serialization
+pytz==2024.1                  # Timezone handling
+python-dateutil==2.8.2        # Date parsing utilities
+
+# =============================================================================
+# LOGGING AND MONITORING
+# Structured logging and error tracking
+# =============================================================================
+structlog==24.1.0             # Structured logging
+rich==13.7.0                  # Beautiful terminal output
+
+# =============================================================================
+# DEVELOPMENT AND TESTING
+# Tools for development, testing, and code quality
+# =============================================================================
+pytest==8.0.0                 # Testing framework
+pytest-asyncio==0.23.4        # Async test support
+pytest-cov==4.1.0             # Test coverage
+httpx==0.26.0                 # Test client for FastAPI
+factory-boy==3.3.0            # Test fixtures factory
+faker==22.6.0                 # Generate fake data for testing
+
+# Code quality
+ruff==0.2.1                   # Fast Python linter
+black==24.1.1                 # Code formatter
+mypy==1.8.0                   # Static type checking
+pre-commit==3.6.1             # Git hooks for code quality
+
+# =============================================================================
+# OPTIONAL: N8N WEBHOOK INTEGRATION
+# For receiving webhooks from N8N workflows
+# =============================================================================
+# No additional packages needed - FastAPI handles webhooks natively
+
+# =============================================================================
+# VERSION PINNING NOTES
+# - All versions are pinned for reproducibility
+# - Update periodically but test thoroughly before deploying
+# - Use `pip-compile` for dependency resolution if conflicts arise
+# =============================================================================
